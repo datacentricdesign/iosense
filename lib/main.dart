@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart'
 import 'package:sensors/sensors.dart';
 
@@ -48,7 +50,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final Set<String> _running_sensors = Set<String>();
   final _biggerFont = const TextStyle(fontSize: 18.0);
+  final StreamSubscription<UserAccelerometerEvent> accel_sub =
+        userAccelerometerEvents.listen( (UserAccelerometerEvent event)
+                                        {
 
+                                        });
 
   @override
   Widget build(BuildContext context) {
