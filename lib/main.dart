@@ -39,10 +39,10 @@ class _MyHomePageState extends State<MyHomePage> {
   final Set<String> _running_sensors = Set<String>();
   final _biggerFont = const TextStyle(fontSize: 18.0);
   List<double> _userAccelerometerValues; // save
-  // s accel values without gravity
-  List<double> _gyroscopeValues;          // saves rotation values, in radians
+  //  accel values without gravity
+  List<double> _gyroscopeValues;         // saves rotation values, in radians
 
-  // stores list of subcriptions to sensor event streams (async data sources)
+  // stores list of subscriptions to sensor event streams (async data sources)
   List<StreamSubscription<dynamic>> _streamSubscriptions =
   <StreamSubscription<dynamic>>[];
 
@@ -97,9 +97,11 @@ class _MyHomePageState extends State<MyHomePage> {
               },
 
             ),
-            Text(
-              '$userAccelerometer',
+            Visibility( // widget does not take any visible space when invisible
+              child: Text('$userAccelerometer'),
+              visible: _running_sensors.contains("Accel"),
             ),
+
             CheckboxListTile(
               title: Text("Gyroscope"),
               value:  _running_sensors.contains("Gyro"),
@@ -111,8 +113,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
               },
             ),
-            Text(
-              '$gyroscope',
+            Visibility( // widget does not take any visible space when invisible
+              child: Text('$gyroscope'),
+              visible: _running_sensors.contains("Gyro"),
             ),
 
           ],
