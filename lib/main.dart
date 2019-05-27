@@ -38,9 +38,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final Set<String> _running_sensors = Set<String>();
   final _biggerFont = const TextStyle(fontSize: 18.0);
-  List<double> _userAccelerometerValues; // save
-  //  accel values without gravity
-  List<double> _gyroscopeValues;         // saves rotation values, in radians
+  List<double> _userAccelerometerValues; // save accel values without gravity
+  // accel forces along x, y and z axes , in m/s^2
+  List<double> _gyroscopeValues; // saves rotation values, in radians
+  //  Rate of rotation around x, y, z axes, in rad/s.
 
   // stores list of subscriptions to sensor event streams (async data sources)
   List<StreamSubscription<dynamic>> _streamSubscriptions =
@@ -98,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
             ),
             Visibility( // widget does not take any visible space when invisible
-              child: Text('$userAccelerometer'),
+              child: Text("{x,y,z} m/s^2 = $userAccelerometer"),
               visible: _running_sensors.contains("Accel"),
             ),
 
@@ -114,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             ),
             Visibility( // widget does not take any visible space when invisible
-              child: Text('$gyroscope'),
+              child: Text("{x,y,z} rad/s  m/s^2.$gyroscope"),
               visible: _running_sensors.contains("Gyro"),
             ),
 
