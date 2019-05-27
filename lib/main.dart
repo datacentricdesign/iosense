@@ -1,6 +1,5 @@
 import 'dart:async';
-
-import 'package:flutter/material.dart'
+import 'package:flutter/material.dart';
 import 'package:sensors/sensors.dart';
 
 void main() => runApp(MyApp());
@@ -11,18 +10,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData.dark(), // dark theme applied
       home: MyHomePage(title: "Sensor Box"),
     );
   }
@@ -50,15 +38,26 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final Set<String> _running_sensors = Set<String>();
   final _biggerFont = const TextStyle(fontSize: 18.0);
-  final StreamSubscription<UserAccelerometerEvent> accel_sub =
-        userAccelerometerEvents.listen( (UserAccelerometerEvent event)
-                                        {
+  List<double> _userAccelerometerValues; // save
+  // s accel values without gravity
+  List<double> _gyroscopeValues;          // saves rotation values, in radians
 
-                                        });
+  // stores list of subcriptions to sensor event streams (async data sources)
+  List<StreamSubscription<dynamic>> _streamSubscriptions =
+  <StreamSubscription<dynamic>>[];
 
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
+    // here we will update our values, before updating the UI
+    // note that conditional member access operator is used (?.)
+    // gyro values
+    final List<String> gyroscope =
+    _gyroscopeValues?.map((double v) => v.toStringAsFixed(1))?.toList();
+    // accel values
+    final List<String> userAccelerometer = _userAccelerometerValues
+        ?.map((double v) => v.toStringAsFixed(1))
+        ?.toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -99,7 +98,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
             ),
             Text(
-              ':',
+              '$userAccelerometer',
             ),
             CheckboxListTile(
               title: Text("Gyroscope"),
@@ -112,11 +111,48 @@ class _MyHomePageState extends State<MyHomePage> {
 
               },
             ),
+            Text(
+              '$gyroscope',
+            ),
 
           ],
         ),
       ),
 
+    );
+  }
+
+  // unregistering our sensor stream subscriptions
+  @override
+  void dispose() {
+    super.dispose();
+    for (StreamSubscription<dynamic> subscription in _streamSubscriptions) {
+      subscription.cancel();
+    }
+  }
+
+  // registering our sensor stream subscriptions
+  // called when stateful widget is inserted in widget tree.
+  @override
+  void initState() {
+    super.initState(); // must be included
+
+    // start subscription once, update values for each event time
+    _streamSubscriptions.add(
+        gyroscopeEvents.listen((GyroscopeEvent event){
+            setState(() {
+               _gyroscopeValues = <double>[event.x, event.y, event.z];
+            });
+        })
+    );
+
+    _streamSubscriptions.add(
+        userAccelerometerEvents.listen(
+            (UserAccelerometerEvent event) {
+              setState(() {
+                _userAccelerometerValues = <double>[event.x, event.y, event.z];
+              });
+        })
     );
   }
 }
