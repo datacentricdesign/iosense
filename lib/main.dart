@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sensors/sensors.dart';
+import 'package:oauth2/oauth2.dart' as oauth2;
 
 void main() => runApp(MyApp());
 
@@ -37,7 +38,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   final Set<String> _running_sensors = Set<String>();
-  final _biggerFont = const TextStyle(fontSize: 18.0);
   List<double> _userAccelerometerValues; // save accel values without gravity
   // accel forces along x, y and z axes , in m/s^2
   List<double> _gyroscopeValues; // saves rotation values, in radians
@@ -109,6 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onChanged: (bool new_value) {
                 setState(()
                 {
+
                   new_value ? _running_sensors.add("Gyro") : _running_sensors.remove("Gyro");
                 });
 
@@ -160,3 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+// broker that authenticates the user app,
+// receives the token and connects to the hub.
+class DCDServerBroker;
