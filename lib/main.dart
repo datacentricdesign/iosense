@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sensors/sensors.dart';
-import 'package:oauth2/oauth2.dart' as oauth2;
-
+import 'package:flutter_appauth/flutter_appauth.dart';
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -119,7 +118,14 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text("{x,y,z} rad/s  m/s^2.$gyroscope"),
               visible: _running_sensors.contains("Gyro"),
             ),
+            Visibility( //if there are any sensors running
+              child: RaisedButton(
+                onPressed: null,
+                child: Text('Stream data to Hub'),
+              ),
+              visible: _running_sensors.isNotEmpty,
 
+            ),
           ],
         ),
       ),
@@ -162,6 +168,20 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-// broker that authenticates the user app,
-// receives the token and connects to the hub.
-class DCDServerBroker;
+// client of DCD,
+// used to receive the token and connect to the hub.
+class DCDClient
+{
+    final authorizationEndpoint =
+    Uri.parse("http://example.com/oauth2/authorization");
+    final tokenEndpoint =
+    Uri.parse("http://example.com/oauth2/token");
+    final identifier = "dcd-hub-android";
+    final secret = "BZ2y0LDdoGxGqSHBS_0-Dm6wyz";
+  // This is a URL on your application's server. The authorization server
+  // will redirect the resource owner here once they've authorized the
+  // client. The redirection will include the authorization code in the
+  // query parameters.
+    final redirectUrl = Uri.parse("nl.tudelft.ide.dcd-hub-android:/oauth2redirect");
+
+}
