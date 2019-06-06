@@ -1,20 +1,33 @@
 PODS:
+  - AppAuth (0.95.1)
   - Flutter (1.0.0)
+  - flutter_appauth (0.0.1):
+    - AppAuth
+    - Flutter
   - sensors (0.0.1):
     - Flutter
 
 DEPENDENCIES:
   - Flutter (from `.symlinks/flutter/ios`)
+  - flutter_appauth (from `.symlinks/plugins/flutter_appauth/ios`)
   - sensors (from `.symlinks/plugins/sensors/ios`)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - AppAuth
 
 EXTERNAL SOURCES:
   Flutter:
     :path: ".symlinks/flutter/ios"
+  flutter_appauth:
+    :path: ".symlinks/plugins/flutter_appauth/ios"
   sensors:
     :path: ".symlinks/plugins/sensors/ios"
 
 SPEC CHECKSUMS:
+  AppAuth: cd34aac431e5c77c46ec7f03935377faa8c5808b
   Flutter: 58dd7d1b27887414a370fcccb9e645c08ffd7a6a
+  flutter_appauth: 19bf8864f437f642a5f10ea1aa7bb9a9d9478cb9
   sensors: b5c565b45237fd2df1c347c14bf5ceeffdb7a2be
 
 PODFILE CHECKSUM: aff02bfeed411c636180d6812254b2daeea14d09

@@ -2,6 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sensors/sensors.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
+import 'package:http/http.dart' as http;
+
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -24,7 +27,7 @@ class MyHomePage extends StatefulWidget {
   // how it looks.
 
   // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
+  // case the title and appauth object) provided by the parent (in this case the App widget) and
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
@@ -36,15 +39,25 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  final Set<String> _running_sensors = Set<String>();
-  List<double> _userAccelerometerValues; // save accel values without gravity
+  bool _streamingEnabled = false;
+  final Set<String> _runningSensors = Set<String>();
+
   // accel forces along x, y and z axes , in m/s^2
-  List<double> _gyroscopeValues; // saves rotation values, in radians
+  List<double> _userAccelerometerValues; // save accel values without gravity
   //  Rate of rotation around x, y, z axes, in rad/s.
+  List<double> _gyroscopeValues; // saves rotation values, in radians
+
 
   // stores list of subscriptions to sensor event streams (async data sources)
   List<StreamSubscription<dynamic>> _streamSubscriptions =
   <StreamSubscription<dynamic>>[];
+
+  // creating our client object
+  DCDClient client;
+
+  // app authentication object
+  FlutterAppAuth appAuth = FlutterAppAuth();
+
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final List<String> userAccelerometer = _userAccelerometerValues
         ?.map((double v) => v.toStringAsFixed(1))
         ?.toList();
+
 
     return Scaffold(
       appBar: AppBar(
@@ -87,43 +101,45 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             CheckboxListTile(
               title: Text("Accelerometer"),
-              value:  _running_sensors.contains("Accel"),
+              value: _runningSensors.contains("Accel"),
               onChanged: (bool new_value) {
-                setState(()
-                {
-                  new_value ? _running_sensors.add("Accel") : _running_sensors.remove("Accel");
+                setState(() {
+                  new_value ? _runningSensors.add("Accel") : _runningSensors
+                      .remove("Accel");
                 });
-
               },
 
             ),
             Visibility( // widget does not take any visible space when invisible
               child: Text("{x,y,z} m/s^2 = $userAccelerometer"),
-              visible: _running_sensors.contains("Accel"),
+              visible: _runningSensors.contains("Accel"),
             ),
 
             CheckboxListTile(
               title: Text("Gyroscope"),
-              value:  _running_sensors.contains("Gyro"),
+              value: _runningSensors.contains("Gyro"),
               onChanged: (bool new_value) {
-                setState(()
-                {
-
-                  new_value ? _running_sensors.add("Gyro") : _running_sensors.remove("Gyro");
+                setState(() {
+                  new_value ? _runningSensors.add("Gyro") : _runningSensors
+                      .remove("Gyro");
                 });
-
               },
             ),
             Visibility( // widget does not take any visible space when invisible
               child: Text("{x,y,z} rad/s  m/s^2.$gyroscope"),
-              visible: _running_sensors.contains("Gyro"),
+              visible: _runningSensors.contains("Gyro"),
             ),
             Visibility( //if there are any sensors running
               child: RaisedButton(
-                onPressed: null,
+                onPressed: //(_streamingEnabled) ? null : () {
+                  setState(() {
+                    stream_to_hub();
+                    _streamingEnabled = !_streamingEnabled;
+                  });
+                },
                 child: Text('Stream data to Hub'),
               ),
-              visible: _running_sensors.isNotEmpty,
+              visible: _runningSensors.isNotEmpty,
 
             ),
           ],
@@ -150,22 +166,52 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // start subscription once, update values for each event time
     _streamSubscriptions.add(
-        gyroscopeEvents.listen((GyroscopeEvent event){
-            setState(() {
-               _gyroscopeValues = <double>[event.x, event.y, event.z];
-            });
+        gyroscopeEvents.listen((GyroscopeEvent event) {
+          setState(() {
+            _gyroscopeValues = <double>[event.x, event.y, event.z];
+          });
         })
     );
 
     _streamSubscriptions.add(
         userAccelerometerEvents.listen(
-            (UserAccelerometerEvent event) {
+                (UserAccelerometerEvent event) {
               setState(() {
                 _userAccelerometerValues = <double>[event.x, event.y, event.z];
               });
-        })
+            })
     );
   }
+
+  Future stream_to_hub() async
+  {
+    DCDClient client;
+    var result = await appAuth.authorizeAndExchangeCode(
+        AuthorizationTokenRequest(
+          client.id,
+          client.redirectUrl.toString(),
+          serviceConfiguration: AuthorizationServiceConfiguration(
+              client.authorizationEndpoint.toString(),
+              client.tokenEndpoint.toString()
+          ),
+        )
+    );
+
+    if (result != null) {
+      setState(() {
+        // save the code verifier as it must be used when exchanging the token
+        client.accessToken = result.accessToken;
+      });
+    }
+  }
+
+  Future interact_hub_http(TokenResponse response) async {
+    var httpResponse = await http.get('string',
+        headers: {'Authorization': 'Bearer ${client.accessToken}'});
+
+
+  }
+
 }
 
 // client of DCD,
@@ -176,12 +222,13 @@ class DCDClient
     Uri.parse("http://example.com/oauth2/authorization");
     final tokenEndpoint =
     Uri.parse("http://example.com/oauth2/token");
-    final identifier = "dcd-hub-android";
+    final id = "dcd-hub-android";
     final secret = "BZ2y0LDdoGxGqSHBS_0-Dm6wyz";
   // This is a URL on your application's server. The authorization server
   // will redirect the resource owner here once they've authorized the
   // client. The redirection will include the authorization code in the
   // query parameters.
     final redirectUrl = Uri.parse("nl.tudelft.ide.dcd-hub-android:/oauth2redirect");
+    String accessToken;
 
 }
