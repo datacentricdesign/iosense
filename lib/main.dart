@@ -39,8 +39,10 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  bool _streamingEnabled = false;
+  bool _runningSensorsChanged = false, streamingToHub = false;
+
   final Set<String> _runningSensors = Set<String>();
+
 
   // accel forces along x, y and z axes , in m/s^2
   List<double> _userAccelerometerValues; // save accel values without gravity
@@ -106,6 +108,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() {
                   new_value ? _runningSensors.add("Accel") : _runningSensors
                       .remove("Accel");
+
+                  _runningSensorsChanged = true;
                 });
               },
 
@@ -122,6 +126,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() {
                   new_value ? _runningSensors.add("Gyro") : _runningSensors
                       .remove("Gyro");
+
+                  _runningSensorsChanged = true;
                 });
               },
             ),
@@ -131,15 +137,15 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Visibility( //if there are any sensors running
               child: RaisedButton(
-                onPressed: //(_streamingEnabled) ? null : () {
+                onPressed: () {
                   setState(() {
-                    stream_to_hub();
-                    _streamingEnabled = !_streamingEnabled;
+                    _runningSensorsChanged = false; // from this point we're streaming
+                    streamingToHub = true;  
                   });
                 },
                 child: Text('Stream data to Hub'),
               ),
-              visible: _runningSensors.isNotEmpty,
+              visible: _runningSensors.isNotEmpty && _runningSensorsChanged,
 
             ),
           ],
