@@ -55,7 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
   <StreamSubscription<dynamic>>[];
 
   // creating our client object
-  DCDClient client;
+  DCDClient client = DCDClient();
 
   // app authentication object
   FlutterAppAuth appAuth = FlutterAppAuth();
@@ -137,11 +137,14 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Visibility( //if there are any sensors running
               child: RaisedButton(
-                onPressed: () {
+                onPressed: ()  {
                   setState(() {
                     _runningSensorsChanged = false; // from this point we're streaming
-                    streamingToHub = true;  
+                    streamingToHub = true;
                   });
+
+                  stream_to_hub();
+
                 },
                 child: Text('Stream data to Hub'),
               ),
@@ -191,16 +194,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future stream_to_hub() async
   {
-    DCDClient client;
     var result = await appAuth.authorizeAndExchangeCode(
         AuthorizationTokenRequest(
           client.id,
           client.redirectUrl.toString(),
+          clientSecret: client.secret,
           serviceConfiguration: AuthorizationServiceConfiguration(
               client.authorizationEndpoint.toString(),
               client.tokenEndpoint.toString()
           ),
         )
+
     );
 
     if (result != null) {
@@ -215,7 +219,6 @@ class _MyHomePageState extends State<MyHomePage> {
     var httpResponse = await http.get('string',
         headers: {'Authorization': 'Bearer ${client.accessToken}'});
 
-
   }
 
 }
@@ -225,9 +228,9 @@ class _MyHomePageState extends State<MyHomePage> {
 class DCDClient
 {
     final authorizationEndpoint =
-    Uri.parse("http://example.com/oauth2/authorization");
+    Uri.parse("https://dwd.tudelft.nl/oauth2/auth");
     final tokenEndpoint =
-    Uri.parse("http://example.com/oauth2/token");
+    Uri.parse("https://dwd.tudelft.nl/oauth2/token");
     final id = "dcd-hub-android";
     final secret = "BZ2y0LDdoGxGqSHBS_0-Dm6wyz";
   // This is a URL on your application's server. The authorization server
