@@ -1,10 +1,10 @@
 // client of DCD,
 // used to receive the token and connect to the hub.
-class DCDClient
+class DCD_client
 {
-  final authorizationEndpoint =
+  final authorization_endpoint =
   Uri.parse("https://dwd.tudelft.nl/oauth2/auth");
-  final tokenEndpoint =
+  final token_endpoint =
   Uri.parse("https://dwd.tudelft.nl/oauth2/token");
   final id = "dcd-hub-android";
   final secret = "BZ2y0LDdoGxGqSHBS_0-Dm6wyz";
@@ -12,8 +12,8 @@ class DCDClient
   // will redirect the resource owner here once they've authorized the
   // client. The redirection will include the authorization code in the
   // query parameters.
-  final redirectUrl = Uri.parse("nl.tudelft.ide.dcd-hub-android:/oauth2redirect");
-  String accessToken;
+  final redirect_url = Uri.parse("nl.tudelft.ide.dcd-hub-android:/oauth2redirect");
+  String access_token;
 
 }
 

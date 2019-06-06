@@ -4,7 +4,7 @@ import 'package:sensors/sensors.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:http/http.dart' as http;
 
-import 'dcd.dart' show DCDClient; // DCD(data centric design) definitions
+import 'dcd.dart' show DCD_client; // DCD(data centric design) definitions
 
 void main() => runApp(MyApp());
 
@@ -40,23 +40,23 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  bool _runningSensorsChanged = false, streamingToHub = false;
+  bool _running_sensors_changed = false, streaming_to_hub = false;
 
-  final Set<String> _runningSensors = Set<String>();
+  final Set<String> _running_sensors = Set<String>();
 
 
-  // accel forces along x, y and z axes , in m/s^2
-  List<double> _userAccelerometerValues; // save accel values without gravity
+  // accelerometer forces along x, y and z axes , in m/s^2
+  List<double> _user_accel_values; // save accel values without gravity
   //  Rate of rotation around x, y, z axes, in rad/s.
-  List<double> _gyroscopeValues; // saves rotation values, in radians
+  List<double> _gyro_values; // saves rotation values, in radians
 
 
   // stores list of subscriptions to sensor event streams (async data sources)
-  List<StreamSubscription<dynamic>> _streamSubscriptions =
+  List<StreamSubscription<dynamic>> _stream_subscriptions =
   <StreamSubscription<dynamic>>[];
 
   // creating our client object
-  DCDClient client = DCDClient();
+  DCD_client client = DCD_client();
 
   // app authentication object
   FlutterAppAuth appAuth = FlutterAppAuth();
@@ -69,9 +69,9 @@ class _MyHomePageState extends State<MyHomePage> {
     // note that conditional member access operator is used (?.)
     // gyro values
     final List<String> gyroscope =
-    _gyroscopeValues?.map((double v) => v.toStringAsFixed(1))?.toList();
+    _gyro_values?.map((double v) => v.toStringAsFixed(1))?.toList();
     // accel values
-    final List<String> userAccelerometer = _userAccelerometerValues
+    final List<String> user_accelerometer = _user_accel_values
         ?.map((double v) => v.toStringAsFixed(1))
         ?.toList();
 
@@ -104,54 +104,55 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             CheckboxListTile(
               title: Text("Accelerometer"),
-              value: _runningSensors.contains("Accel"),
+              value: _running_sensors.contains("Accel"),
               onChanged: (bool new_value) {
                 setState(() {
-                  new_value ? _runningSensors.add("Accel") : _runningSensors
+                  new_value ? _running_sensors.add("Accel") : _running_sensors
                       .remove("Accel");
 
-                  _runningSensorsChanged = true; //set to stream has changed
-                  streamingToHub =false; // stop streaming
+                  _running_sensors_changed = true; //set to stream has changed
+                  streaming_to_hub =false; // stop streaming
                 });
               },
 
             ),
             Visibility( // widget does not take any visible space when invisible
-              child: Text("{x,y,z} m/s^2 = $userAccelerometer"),
-              visible: _runningSensors.contains("Accel"),
+              child: Text("{x,y,z} m/s^2 = $user_accelerometer"),
+              visible: _running_sensors.contains("Accel"),
             ),
 
             CheckboxListTile(
               title: Text("Gyroscope"),
-              value: _runningSensors.contains("Gyro"),
+              value: _running_sensors.contains("Gyro"),
               onChanged: (bool new_value) {
                 setState(() {
-                  new_value ? _runningSensors.add("Gyro") : _runningSensors
+                  new_value ? _running_sensors.add("Gyro") : _running_sensors
                       .remove("Gyro");
 
-                  _runningSensorsChanged = true; //set to stream has changed
-                  streamingToHub =false;
+                  _running_sensors_changed = true; //set to stream has changed
+                  streaming_to_hub =false;
                 });
               },
             ),
             Visibility( // widget does not take any visible space when invisible
               child: Text("{x,y,z} rad/s  m/s^2.$gyroscope"),
-              visible: _runningSensors.contains("Gyro"),
+              visible: _running_sensors.contains("Gyro"),
             ),
             Visibility( //if there are any sensors running
               child: RaisedButton(
-                onPressed: ()  {
+                onPressed: ()  async {
                   setState(() {
-                    _runningSensorsChanged = false; // from this point we're streaming
-                    streamingToHub = true;
+                    _running_sensors_changed = false; // from this point we're streaming
+                    streaming_to_hub = true;
                   });
 
-                  stream_to_hub();
+                  await stream_to_hub();
+                  var response = await interact_hub_http();
 
                 },
                 child: Text('Stream data to Hub'),
               ),
-              visible: _runningSensors.isNotEmpty && _runningSensorsChanged,
+              visible: _running_sensors.isNotEmpty && _running_sensors_changed,
 
             ),
           ],
@@ -165,7 +166,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void dispose() {
     super.dispose();
-    for (StreamSubscription<dynamic> subscription in _streamSubscriptions) {
+    for (StreamSubscription<dynamic> subscription in _stream_subscriptions) {
       subscription.cancel();
     }
   }
@@ -177,19 +178,19 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState(); // must be included
 
     // start subscription once, update values for each event time
-    _streamSubscriptions.add(
+    _stream_subscriptions.add(
         gyroscopeEvents.listen((GyroscopeEvent event) {
           setState(() {
-            _gyroscopeValues = <double>[event.x, event.y, event.z];
+            _gyro_values = <double>[event.x, event.y, event.z];
           });
         })
     );
 
-    _streamSubscriptions.add(
+    _stream_subscriptions.add(
         userAccelerometerEvents.listen(
                 (UserAccelerometerEvent event) {
               setState(() {
-                _userAccelerometerValues = <double>[event.x, event.y, event.z];
+                _user_accel_values = <double>[event.x, event.y, event.z];
               });
             })
     );
@@ -200,11 +201,11 @@ class _MyHomePageState extends State<MyHomePage> {
     var result = await appAuth.authorizeAndExchangeCode(
         AuthorizationTokenRequest(
           client.id,
-          client.redirectUrl.toString(),
+          client.redirect_url.toString(),
           clientSecret: client.secret,
           serviceConfiguration: AuthorizationServiceConfiguration(
-              client.authorizationEndpoint.toString(),
-              client.tokenEndpoint.toString()
+              client.authorization_endpoint.toString(),
+              client.token_endpoint.toString()
           ),
         )
 
@@ -213,16 +214,19 @@ class _MyHomePageState extends State<MyHomePage> {
     if (result != null) {
       setState(() {
         // save the code verifier as it must be used when exchanging the token
-        client.accessToken = result.accessToken;
-        streamingToHub = true;
+        client.access_token = result.accessToken;
+        streaming_to_hub = true;
       });
     }
   }
 
-  Future interact_hub_http(TokenResponse response) async {
-    var httpResponse = await http.get('string',
-        headers: {'Authorization': 'Bearer ${client.accessToken}'});
+  Future<http.Response> interact_hub_http() async {
+    var http_response = await http.get('https://dwd.tudelft.nl/api/things',
+        headers: {'Authorization': 'Bearer ${client.access_token}'});
 
+    var aba = http_response.body;
+
+    return(http_response);
   }
 
 }
