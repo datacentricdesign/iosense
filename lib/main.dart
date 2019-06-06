@@ -241,3 +241,23 @@ class DCDClient
     String accessToken;
 
 }
+
+class DCD_broker
+{
+  bool find_or_create_thing()
+  {
+    return(true);
+  }
+
+  bool find_or_create_property()
+  {
+    return(true);
+  }
+
+  bool upload_values()
+  {
+    
+  }
+
+
+}
