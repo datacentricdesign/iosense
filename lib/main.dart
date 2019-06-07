@@ -228,6 +228,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var aba = jsonDecode(http_response.body);
 
+    client.object_map = aba;
+    var thing = client.object_map["things"];
+    var lala = thing[0]["id"];
     return(http_response);
   }
 

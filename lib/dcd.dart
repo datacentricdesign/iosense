@@ -14,7 +14,7 @@ class DCD_client
   // query parameters.
   final redirect_url = Uri.parse("nl.tudelft.ide.dcd-hub-android:/oauth2redirect");
   String access_token;
-
+  Map<String, dynamic> object_map;
 }
 
 class DCD_broker
