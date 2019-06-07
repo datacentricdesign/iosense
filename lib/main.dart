@@ -1,8 +1,8 @@
-import 'dart:async';
+import 'dart:async';  // async support
 import 'package:flutter/material.dart';
-import 'package:sensors/sensors.dart';
-import 'package:flutter_appauth/flutter_appauth.dart';
-import 'package:http/http.dart' as http;
+import 'package:sensors/sensors.dart'; // flutter xplatform sensor suite
+import 'package:flutter_appauth/flutter_appauth.dart'; // AppAuth in flutter
+import 'package:http/http.dart' as http;  //flutter http library
 
 import 'dcd.dart' show DCD_client; // DCD(data centric design) definitions
 
