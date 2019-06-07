@@ -1,4 +1,6 @@
 import 'dart:async';  // async support
+import 'dart:convert';  // json en/decoder
+
 import 'package:flutter/material.dart';
 import 'package:sensors/sensors.dart'; // flutter xplatform sensor suite
 import 'package:flutter_appauth/flutter_appauth.dart'; // AppAuth in flutter
@@ -224,7 +226,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var http_response = await http.get('https://dwd.tudelft.nl/api/things',
         headers: {'Authorization': 'Bearer ${client.access_token}'});
 
-    var aba = http_response.body;
+    var aba = jsonDecode(http_response.body);
 
     return(http_response);
   }
