@@ -1,8 +1,6 @@
 // Flutter side of Hub structures
 
 
-import 'package:flutter/foundation.dart';
-
 class Thing
 {
   String id;
@@ -46,15 +44,35 @@ class Thing
 
 }
 
-
+// supported types so far : ACCELEROMETER, GYROSCOPE
 class Property
 {
+  String id;
   String name;
   String description;
   String type;
-  String id;
 
-  
+  Property(this.id,
+           this.name,
+           this.description,
+           this.type);
+
+  // named constructor from json object
+  // also using an initializer list
+  Property.from_json(Map<String, dynamic> json)
+      : id = json['id'],
+        name = json['name'],
+        description = json['description'],
+        type = json['type'];
+
+  // arrow notation (replaces {return x;}
+  Map<String, dynamic> to_json() =>
+      {
+        'id': id,
+        'name': name,
+        'description': description,
+        'type': type,
+      };
 }
 
 
@@ -83,7 +101,7 @@ class DCD_client extends DCD_broker
 class DCD_broker
 {
   // Finds or creates thing in hub, return false if error
-  bool find_or_create_thing(Map<String, >)
+  bool find_or_create_thing()
   {
 
     return(true);
