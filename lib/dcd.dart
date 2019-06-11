@@ -88,7 +88,6 @@ class Thing
     return(Property.from_json(json));
   }
 
-  }
 }
 
 
@@ -131,19 +130,20 @@ class Property
 List<dynamic> Properties;
 // client of DCD,
 // used to receive token, connect and interact with the hub.
-class DCD_client
-{
+class DCD_client {
   final authorization_endpoint =
   Uri.parse('https://dwd.tudelft.nl/oauth2/auth');
   final token_endpoint =
   Uri.parse('https://dwd.tudelft.nl/oauth2/token');
-  final id = 'dcd-hub-android';
-  final secret = 'BZ2y0LDdoGxGqSHBS_0-Dm6wyz';
+  final id = 'dcd-mobile-app';
+  //final secret = 'BZ2y0LDdoGxGqSHBS_0-Dm6wyz';
+
   // This is a URL on your application's server. The authorization server
   // will redirect the resource owner here once they've authorized the
   // client. The redirection will include the authorization code in the
   // query parameters.
-  final redirect_url = Uri.parse('nl.tudelft.ide.dcd-hub-android:/oauth2redirect');
+  final redirect_url = Uri.parse(
+      'nl.tudelft.ide.dcd-mobile-app:/oauth2redirect');
   final basic_url = 'https://dwd.tudelft.nl/api';
   String access_token;
   Thing thing; // holds thing for our client to update
@@ -153,19 +153,18 @@ class DCD_client
   {
     var addr_url = basic_url + '/things';
     var http_response = await http.post(addr_url,
-                                        headers: {'Authorization':
-                                        'Bearer ${access_token}'});
+        headers: {'Authorization':
+        'Bearer ${access_token}'});
 
 
-    if (http_response.statusCode != 200)
-    {
+    if (http_response.statusCode != 200) {
       // If that response was not OK, throw an error.
       throw Exception('Failed to post to thing');
-
     }
 
     var json = jsonDecode(http_response.body);
-    return(Thing.from_json(json));
+    return (Thing.from_json(json));
+  }
+
+
 }
-
-

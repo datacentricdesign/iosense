@@ -204,11 +204,12 @@ class _MyHomePageState extends State<MyHomePage> {
         AuthorizationTokenRequest(
           client.id,
           client.redirect_url.toString(),
-          clientSecret: client.secret,
-          serviceConfiguration: AuthorizationServiceConfiguration(
-              client.authorization_endpoint.toString(),
-              client.token_endpoint.toString()
-          ),
+          discoveryUrl: "https://dwd.tudelft.nl/.well-known/openid-configuration"
+          //clientSecret: client.secret,
+          //serviceConfiguration: AuthorizationServiceConfiguration(
+          //    client.authorization_endpoint.toString(),
+          //     client.token_endpoint.toString()
+          //),
         )
 
     );
