@@ -2,7 +2,7 @@ import 'dart:async';  // async support
 import 'dart:convert';  // json en/decoder
 
 import 'package:flutter/material.dart';
-import 'package:sensors/sensors.dart'; // flutter xplatform sensor suite
+import 'package:sensors/sensors.dart'; // flutter cross-platform sensor suite
 import 'package:flutter_appauth/flutter_appauth.dart'; // AppAuth in flutter
 import 'package:http/http.dart' as http;  //flutter http library
 
@@ -227,9 +227,7 @@ class _MyHomePageState extends State<MyHomePage> {
         headers: {'Authorization': 'Bearer ${client.access_token}'});
 
     var aba = jsonDecode(http_response.body);
-
-    client.object_map = aba;
-    var thing = client.object_map["things"];
+    var thing = aba["things"];
     var lala = thing[0]["id"];
 
     return(http_response);

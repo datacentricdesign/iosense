@@ -1,6 +1,7 @@
 // Flutter side of Hub structures
+import 'dart:ui';
 
-
+import 'package:http/http.dart' as http;
 class Thing
 {
   String id;
@@ -9,7 +10,7 @@ class Thing
   String type;
   List<dynamic> properties;
   int readAt;
-  Map<String, dynamic> keys;
+  //Map<String, dynamic> keys;
 
   Thing(this.id,
         this.name,
@@ -17,7 +18,7 @@ class Thing
         this.type,
         this.properties,
         this.readAt,
-        this.keys);
+        /*this.keys*/);
 
   // named constructor from json object
   // also using an initializer list
@@ -27,8 +28,8 @@ class Thing
         description = json['description'],
         type = json['type'],
         properties = json['properties'],
-        readAt = json['readAt'],
-        keys =  json['keys'];
+        readAt = json['readAt']
+        /*keys =  json['keys']*/;
 
   // arrow notation (replaces {return x;}
   Map<String, dynamic> to_json() =>
@@ -39,7 +40,7 @@ class Thing
         'type': type,
         'properties': properties,
         'readAt': readAt,
-        'keys': keys,
+        /*'keys': keys,*/
       };
 
 }
@@ -51,6 +52,7 @@ class Property
   String name;
   String description;
   String type;
+  List<dynamic> values; //list of values
 
   Property(this.id,
            this.name,
@@ -63,7 +65,8 @@ class Property
       : id = json['id'],
         name = json['name'],
         description = json['description'],
-        type = json['type'];
+        type = json['type'],
+        values= json['values'];
 
   // arrow notation (replaces {return x;}
   Map<String, dynamic> to_json() =>
@@ -72,6 +75,7 @@ class Property
         'name': name,
         'description': description,
         'type': type,
+        'values':values,
       };
 }
 
@@ -94,32 +98,60 @@ class DCD_client extends DCD_broker
   // query parameters.
   final redirect_url = Uri.parse('nl.tudelft.ide.dcd-hub-android:/oauth2redirect');
   String access_token;
-  Map<String, dynamic> object_map; // holds things list
+  Thing thing; // holds thing for our client to update
 
 }
 
 class DCD_broker
 {
-  // Finds or creates thing in hub, return false if error
-  bool find_or_create_thing()
+  final basic_url = 'https://dwd.tudelft.nl/api';
+  // creates thing in hub, return false if error
+  Future<void> create_thing(String access_token) async
+  {
+    var addr_url = basic_url + '/things';
+    var http_response = await http.post(addr_url,
+                                        headers: {'Authorization':
+                                                  'Bearer ${access_token}'});
+    if (http_response.statusCode != 200) {
+      // If that response was not OK, throw an error.
+      throw Exception('Failed to post to thing');
+    }
+
+  }
+
+  // Given an EXISTING thing, an access token, and values
+  //updates a property in it of type prop_type
+  Future<bool> create_property(, String prop_type, Thing thing, String access_token) async
+  {
+    var addr_url = basic_url + '/things/${thing.id}/properties';
+    //blank property,except type
+    Property blank = Property(null, null, null, prop_type);
+
+    var http_response = await http.post(addr_url,
+                                        headers: {'Authorization':
+                                        'Bearer ${access_token}'},
+                                        body: blank.to_json());
+
+    if (http_response.statusCode != 200) {
+      // If that response was not OK, throw an error.
+      throw Exception('Failed to post to thing');
+    }
+
+
+
+    return(true);
+  }
+
+
+
+  // Given an EXISTING thing, and an access token
+  // creates a property in it of type prop_type
+  Future<bool> update_property(String prop_type, Thing thing, String access_token) async
   {
 
     return(true);
   }
 
-  // Finds or creates property in hub, return false if error
-  bool find_or_create_property()
-  {
-
-    return(true);
-  }
-
-  // Finds or creates property in hub, return false if error
-  bool upload_values()
-  {
-
-    return(true);
-  }
 
 
 }
