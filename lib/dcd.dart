@@ -1,7 +1,9 @@
 // Flutter side of Hub structures
-import 'dart:ui';
+import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+
+
 class Thing
 {
   String id;
@@ -43,7 +45,52 @@ class Thing
         /*'keys': keys,*/
       };
 
+  // Given an EXISTING thing, an access token, and values
+  //updates a property in it of type prop_type
+  Future<Property> create_property(String prop_type, String access_token) async
+  {
+    var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties';
+    //blank property,except type
+    Property blank = Property(null, null, null, prop_type);
+
+    var http_response = await http.post(addr_url,
+                                        headers: {'Authorization':
+                                                  'Bearer ${access_token}'},
+                                        body: blank.to_json());
+
+    if (http_response.statusCode != 200)
+    {
+      // If that response was not OK, throw an error.
+      throw Exception('Failed to post property to thing');
+    }
+
+    var json = jsonDecode(http_response.body);
+    return(Property.from_json(json));
+  }
+
+  // updates property values given property, values and access token
+  Future<void>update_property(Property property , List<dynamic> values, String access_token) async
+  {
+    var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties/${property.id}';
+    property.values = values; // setting the values of the property that's replaced
+    var http_response = await http.post(addr_url,
+                                        headers: {'Authorization':
+                                        'Bearer ${access_token}'},
+                                        body: property.to_json());
+
+    if (http_response.statusCode != 200)
+    {
+      // If that response was not OK, throw an error.
+      throw Exception('Failed to post property to thing');
+    }
+
+    var json = jsonDecode(http_response.body);
+    return(Property.from_json(json));
+  }
+
+  }
 }
+
 
 // supported types so far : ACCELEROMETER, GYROSCOPE
 class Property
@@ -83,8 +130,8 @@ class Property
 
 List<dynamic> Properties;
 // client of DCD,
-// used to receive the token and connect to the hub.
-class DCD_client extends DCD_broker
+// used to receive token, connect and interact with the hub.
+class DCD_client
 {
   final authorization_endpoint =
   Uri.parse('https://dwd.tudelft.nl/oauth2/auth');
@@ -97,62 +144,28 @@ class DCD_client extends DCD_broker
   // client. The redirection will include the authorization code in the
   // query parameters.
   final redirect_url = Uri.parse('nl.tudelft.ide.dcd-hub-android:/oauth2redirect');
+  final basic_url = 'https://dwd.tudelft.nl/api';
   String access_token;
   Thing thing; // holds thing for our client to update
 
-}
-
-class DCD_broker
-{
-  final basic_url = 'https://dwd.tudelft.nl/api';
-  // creates thing in hub, return false if error
-  Future<void> create_thing(String access_token) async
+  // creates thing in hub
+  Future<Thing> create_thing(String access_token) async
   {
     var addr_url = basic_url + '/things';
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
-                                                  'Bearer ${access_token}'});
-    if (http_response.statusCode != 200) {
+                                        'Bearer ${access_token}'});
+
+
+    if (http_response.statusCode != 200)
+    {
       // If that response was not OK, throw an error.
       throw Exception('Failed to post to thing');
+
     }
 
-  }
-
-  // Given an EXISTING thing, an access token, and values
-  //updates a property in it of type prop_type
-  Future<bool> create_property(, String prop_type, Thing thing, String access_token) async
-  {
-    var addr_url = basic_url + '/things/${thing.id}/properties';
-    //blank property,except type
-    Property blank = Property(null, null, null, prop_type);
-
-    var http_response = await http.post(addr_url,
-                                        headers: {'Authorization':
-                                        'Bearer ${access_token}'},
-                                        body: blank.to_json());
-
-    if (http_response.statusCode != 200) {
-      // If that response was not OK, throw an error.
-      throw Exception('Failed to post to thing');
-    }
-
-
-
-    return(true);
-  }
-
-
-
-  // Given an EXISTING thing, and an access token
-  // creates a property in it of type prop_type
-  Future<bool> update_property(String prop_type, Thing thing, String access_token) async
-  {
-
-    return(true);
-  }
-
-
-
+    var json = jsonDecode(http_response.body);
+    return(Thing.from_json(json));
 }
+
 
