@@ -220,7 +220,7 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         // save the code verifier as it must be used when exchanging the token
         client.access_token = result.accessToken;
-        client.create_thing("myphonedevice", client.access_token)
+        client.create_thing("myphonedevice", client.access_token);
         streaming_to_hub = true;
         
       });

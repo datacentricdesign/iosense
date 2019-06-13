@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-
 class Thing
 {
   String id;
@@ -36,8 +35,8 @@ class Thing
   // arrow notation (replaces {return x;}
   Map<String, dynamic> to_json() =>
       {
-        'id': id,
-        'name': name,
+        if(id!= null) 'id': id,
+        if(name!=null)'name': name,
         'description': description,
         'type': type,
         'properties': properties,
@@ -56,7 +55,7 @@ class Thing
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
                                                   'Bearer ${access_token}'},
-                                        body: blank.to_json());
+                                        body: jsonEncode( blank.to_json()));
 
     if (http_response.statusCode != 200)
     {
@@ -76,7 +75,7 @@ class Thing
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
                                         'Bearer ${access_token}'},
-                                        body: property.to_json());
+                                        body: jsonEncode(property.to_json()));
 
     if (http_response.statusCode != 200)
     {
@@ -117,17 +116,17 @@ class Property
   // arrow notation (replaces {return x;}
   Map<String, dynamic> to_json() =>
       {
-        'id': id,
         'name': name,
         'description': description,
         'type': type,
         'values':values,
       };
+
 }
 
 
 
-List<dynamic> Properties;
+
 // client of DCD,
 // used to receive token, connect and interact with the hub.
 class DCD_client {
@@ -146,7 +145,7 @@ class DCD_client {
       'nl.tudelft.ide.dcd-mobile-app:/oauth2redirect');
   final basic_url = 'https://dwd.tudelft.nl/api';
   String access_token;
-  Thing thing; // holds thing for our client to update
+  Thing thing ; // holds thing for our client to update
 
   // creates thing in hub and puts it into client thing member
   Future<Thing> create_thing(String thing_name, String access_token) async
@@ -157,7 +156,7 @@ class DCD_client {
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
                                                   'Bearer ${access_token}'},
-                                        body: blank.to_json());
+                                        body: jsonEncode(blank.to_json()));
 
 
 
