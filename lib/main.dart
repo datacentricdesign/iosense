@@ -77,6 +77,13 @@ class _MyHomePageState extends State<MyHomePage> {
         ?.map((double v) => v.toStringAsFixed(1))
         ?.toList();
 
+    // if we're streaming to hub, update the property values in the hub
+    if(streaming_to_hub)
+    {
+        client.thing.update_property(client.thing.properties[0] , gyroscope, client.access_token);
+        client.thing.update_property(client.thing.properties[1], user_accelerometer, client.access_token);
+    }
+
 
     return Scaffold(
       appBar: AppBar(
@@ -149,7 +156,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   });
 
                   await stream_to_hub();
-                  
+                  if( _running_sensors.contains(("Gyro"))) {
+                    await client.thing.create_property("GYROSCOPE", client.access_token);
+                  }
+
+                  if( _running_sensors.contains(("Accel"))) {
+                    await client.thing.create_property("ACCELEROMETER", client.access_token);
+                  }
+
                   var response = await interact_hub_http();
 
 

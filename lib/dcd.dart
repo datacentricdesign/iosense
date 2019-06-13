@@ -35,14 +35,14 @@ class Thing
   // arrow notation (replaces {return x;}
   Map<String, dynamic> to_json() =>
       {
-        if(id!= null) 'id': id,
-        if(name!=null)'name': name,
-        'description': description,
-        'type': type,
-        'properties': properties,
-        'readAt': readAt,
-        /*'keys': keys,*/
+          if(id!= null) 'id':id,
+          if(name!=null)'name': name,
+          if(description!=null)'description': description,
+          if(type!=null)'type': type,
+          if(properties!=null)'properties': properties,
+          if(readAt!=null)'readAt': readAt,
       };
+
 
   // Given an EXISTING thing, an access token, and values
   //updates a property in it of type prop_type
@@ -116,10 +116,11 @@ class Property
   // arrow notation (replaces {return x;}
   Map<String, dynamic> to_json() =>
       {
-        'name': name,
-        'description': description,
-        'type': type,
-        'values':values,
+        if(id!= null) 'id':id,
+        if(name!=null)'name': name,
+        if(description!=null)'description': description,
+        if(type!=null)'type': type,
+        if(values!=null)'values': values,
       };
 
 }
