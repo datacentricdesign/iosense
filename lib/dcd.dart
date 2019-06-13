@@ -148,13 +148,17 @@ class DCD_client {
   String access_token;
   Thing thing; // holds thing for our client to update
 
-  // creates thing in hub
-  Future<Thing> create_thing(String access_token) async
+  // creates thing in hub and puts it into client thing member
+  Future<Thing> create_thing(String thing_name, String access_token) async
   {
     var addr_url = basic_url + '/things';
+    // creating empty thing
+    Thing blank = Thing(null, thing_name,null, null, null, null );
     var http_response = await http.post(addr_url,
-        headers: {'Authorization':
-        'Bearer ${access_token}'});
+                                        headers: {'Authorization':
+                                                  'Bearer ${access_token}'},
+                                        body: blank.to_json());
+
 
 
     if (http_response.statusCode != 200) {
@@ -163,7 +167,8 @@ class DCD_client {
     }
 
     var json = jsonDecode(http_response.body);
-    return (Thing.from_json(json));
+    this.thing = Thing.from_json(json);
+    return (this.thing);
   }
 
 
