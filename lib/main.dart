@@ -78,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ?.toList();
 
     // if we're streaming to hub, update the property values in the hub
-    if(streaming_to_hub)
+    if(streaming_to_hub&& false)
     {
         client.thing.update_property(client.thing.properties[0] , gyroscope, client.access_token);
         client.thing.update_property(client.thing.properties[1], user_accelerometer, client.access_token);

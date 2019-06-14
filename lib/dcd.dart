@@ -1,6 +1,7 @@
 // Flutter side of Hub structures
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 class Thing
@@ -74,7 +75,11 @@ class Thing
     property.values = values; // setting the values of the property that's replaced
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
-                                        'Bearer ${access_token}'},
+                                                  'Bearer ${access_token}',
+                                                  'Content-Type' :
+                                                  'application/json',
+                                                  'Response-Type':
+                                                  'application/json'},
                                         body: jsonEncode(property.to_json()));
 
     if (http_response.statusCode != 200)
@@ -156,7 +161,11 @@ class DCD_client {
     Thing blank = Thing(null, thing_name,null, null, null, null );
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
-                                                  'Bearer ${access_token}'},
+                                                  'Bearer ${access_token}',
+                                                  'Content-Type' :
+                                                  'application/json',
+                                                  'Response-Type':
+                                                  'application/json'},
                                         body: jsonEncode(blank.to_json()));
 
 
