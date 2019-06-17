@@ -68,7 +68,7 @@ class Thing
       throw Exception('Failed to post property to thing');
     }
 
-    var json = jsonDecode(http_response.body);
+    var json = await jsonDecode(http_response.body);
     return(Property.from_json(json));
   }
 
@@ -92,7 +92,7 @@ class Thing
       throw Exception('Failed to post property to thing');
     }
 
-    var json = jsonDecode(http_response.body);
+    var json =  await jsonDecode(http_response.body);
     return(Property.from_json(json));
   }
 
@@ -125,6 +125,7 @@ class Property
   // arrow notation (replaces {return x;}
   Map<String, dynamic> to_json() =>
       {
+        // only create fields of json is value is not null
         if(id!= null) 'id':id,
         if(name!=null)'name': name,
         if(description!=null)'description': description,
@@ -180,7 +181,7 @@ class DCD_client {
     }
 
     var json = jsonDecode(http_response.body);
-    this.thing = Thing.from_json(json);
+    this.thing = Thing.from_json(json['thing']);
     return (this.thing);
   }
 

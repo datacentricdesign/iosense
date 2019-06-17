@@ -115,12 +115,13 @@ class _MyHomePageState extends State<MyHomePage> {
               title: Text("Accelerometer"),
               value: _running_sensors.contains("Accel"),
               onChanged: (bool new_value) {
+                _running_sensors_changed = true; //set to stream has changed
+                streaming_to_hub =false; // stop streaming
+
+                // updating our state since running sensors changes UI
                 setState(() {
                   new_value ? _running_sensors.add("Accel") : _running_sensors
                       .remove("Accel");
-
-                  _running_sensors_changed = true; //set to stream has changed
-                  streaming_to_hub =false; // stop streaming
                 });
               },
 
@@ -134,12 +135,13 @@ class _MyHomePageState extends State<MyHomePage> {
               title: Text("Gyroscope"),
               value: _running_sensors.contains("Gyro"),
               onChanged: (bool new_value) {
+                _running_sensors_changed = true; //set to stream has changed
+                streaming_to_hub =false;
+
+                // updating our state since running sensors changes UI
                 setState(() {
                   new_value ? _running_sensors.add("Gyro") : _running_sensors
                       .remove("Gyro");
-
-                  _running_sensors_changed = true; //set to stream has changed
-                  streaming_to_hub =false;
                 });
               },
             ),
@@ -149,22 +151,15 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Visibility( //if there are any sensors running
               child: RaisedButton(
-                onPressed: ()  async {
+                onPressed: () async {
+                  await stream_to_hub();
+
                   setState(() {
                     _running_sensors_changed = false; // from this point we're streaming
                     streaming_to_hub = true;
                   });
 
-                  await stream_to_hub();
-                  if( _running_sensors.contains(("Gyro"))) {
-                    await client.thing.create_property("GYROSCOPE", client.access_token);
-                  }
-
-                  if( _running_sensors.contains(("Accel"))) {
-                    await client.thing.create_property("ACCELEROMETER", client.access_token);
-                  }
-
-                  var response = await interact_hub_http();
+                 // var response = await interact_hub_http();
 
 
                 },
@@ -230,18 +225,41 @@ class _MyHomePageState extends State<MyHomePage> {
 
     );
 
-    if (result != null) {
-      setState(() {
+    if (result != null)  {
         // save the code verifier as it must be used when exchanging the token
-        client.access_token = result.accessToken;
-        client.create_thing("myphonedevice", client.access_token);
+        client.access_token =  result.accessToken;
         streaming_to_hub = true;
-        
-      });
+        await client.create_thing("myphonedevice", client.access_token);
+        await create_properties_hub();
     }
   }
 
-  Future<http.Response> interact_hub_http() async {
+  create_properties_hub() async
+  {
+    if( client.access_token == null) throw Exception("Invalid client access token");
+
+    if( _running_sensors.contains(("Gyro"))) {
+      await client.thing.create_property("GYROSCOPE", client.access_token);
+    }
+
+    if( _running_sensors.contains(("Accel"))) {
+      await client.thing.create_property("ACCELEROMETER", client.access_token);
+    }
+  }
+
+  void update_properties_hub()
+  {
+    if( _running_sensors.contains(("Gyro"))) {
+      client.thing.create_property("GYROSCOPE", client.access_token);
+    }
+
+    if( _running_sensors.contains(("Accel"))) {
+      client.thing.create_property("ACCELEROMETER", client.access_token);
+    }
+  }
+
+  Future<http.Response> interact_hub_http() async
+  {
     var http_response = await http.get('https://dwd.tudelft.nl/api/things',
         headers: {'Authorization': 'Bearer ${client.access_token}'});
 
