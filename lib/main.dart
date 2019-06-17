@@ -78,11 +78,8 @@ class _MyHomePageState extends State<MyHomePage> {
         ?.toList();
 
     // if we're streaming to hub, update the property values in the hub
-    if(streaming_to_hub&& false)
-    {
-        client.thing.update_property(client.thing.properties[0] , gyroscope, client.access_token);
-        client.thing.update_property(client.thing.properties[1], user_accelerometer, client.access_token);
-    }
+    if(streaming_to_hub) update_properties_hub();
+
 
 
     return Scaffold(
@@ -248,13 +245,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void update_properties_hub()
   {
-    if( _running_sensors.contains(("Gyro"))) {
+    // do not do anything until client is established
+    if(client.thing == null) return;
+
+    // do not do anything unless it is a running sensor and is established in hub
+    if( _running_sensors.contains(("Gyro")) && client.thing.properties.length ==2) {
       client.thing.update_property(client.thing.properties[0],
                                          _gyro_values,
                                          client.access_token);
     }
 
-    if( _running_sensors.contains(("Accel"))) {
+    if( _running_sensors.contains(("Accel")) && client.thing.properties.length ==2) {
        client.thing.update_property(client.thing.properties[1],
                                          _user_accel_values,
                                          client.access_token);
@@ -267,8 +268,11 @@ class _MyHomePageState extends State<MyHomePage> {
   // and link can be changed to change test hub directory
   Future<http.Response> interact_hub_http() async
   {
-    var http_response = await http.get('https://dwd.tudelft.nl/api/things',
+    //var http_response = await http.get('https://dwd.tudelft.nl/api/things',
+      //  headers: {'Authorization': 'Bearer ${client.access_token}'});
+    var http_response = await http.delete('https://dwd.tudelft.nl/api/things/my-thing-8a1e',
         headers: {'Authorization': 'Bearer ${client.access_token}'});
+
 
     var aba = jsonDecode(http_response.body);
     var thing = aba["things"];

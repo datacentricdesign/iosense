@@ -1,6 +1,7 @@
 // Flutter side of Hub structures
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 class Thing
@@ -44,14 +45,15 @@ class Thing
       };
 
 
-  // Given an EXISTING thing, an access token, and values
-  //updates a property in it of type prop_type
+  // Given an EXISTING thing, and an access token,
+  // creates a property in it of type prop_type,
+  // and returns created property
   Future<Property> create_property(String prop_type, String access_token) async
   {
     if( this.id == null) throw Exception("Invalid thing id");
     var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties';
     //blank property,except type
-    Property blank = Property(null, null, null, prop_type);
+    Property blank = Property(null, prop_type.toLowerCase(), null, prop_type);
 
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
@@ -68,7 +70,11 @@ class Thing
       throw Exception('Failed to post property to thing');
     }
 
-    var json = await jsonDecode(http_response.body);
+    var json = jsonDecode(http_response.body);
+    // adding a new property to our thing
+    this.properties.add(Property.from_json(json['property'])
+    );
+
     return(Property.from_json(json));
   }
 
@@ -77,6 +83,8 @@ class Thing
   {
     var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties/${property.id}';
     property.values = values; // setting the values of the property that's replaced
+    var lala = jsonEncode(property.to_json());
+    debugPrint(lala);
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
                                                   'Bearer ${access_token}',
