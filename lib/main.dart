@@ -241,13 +241,9 @@ class _MyHomePageState extends State<MyHomePage> {
   {
     if( client.access_token == null) throw Exception("Invalid client access token");
 
-    if( _running_sensors.contains(("Gyro"))) {
+      // Sequential creation of properties
       await client.thing.create_property("GYROSCOPE", client.access_token);
-    }
-
-    if( _running_sensors.contains(("Accel"))) {
       await client.thing.create_property("ACCELEROMETER", client.access_token);
-    }
   }
 
   void update_properties_hub()
@@ -267,6 +263,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // test function, see if hub is interactive
   // can be used to check response type
+  // breakpoints can be used in variables to check response struct
+  // and link can be changed to change test hub directory
   Future<http.Response> interact_hub_http() async
   {
     var http_response = await http.get('https://dwd.tudelft.nl/api/things',
