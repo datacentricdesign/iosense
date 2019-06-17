@@ -152,6 +152,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Visibility( //if there are any sensors running
               child: RaisedButton(
                 onPressed: () async {
+                  // do not go forwards until streaming has happened
                   await stream_to_hub();
 
                   setState(() {
@@ -229,6 +230,8 @@ class _MyHomePageState extends State<MyHomePage> {
         // save the code verifier as it must be used when exchanging the token
         client.access_token =  result.accessToken;
         streaming_to_hub = true;
+        // two following functions depend on each other, so sequential
+        // processing is in order for correct functionality
         await client.create_thing("myphonedevice", client.access_token);
         await create_properties_hub();
     }
@@ -250,14 +253,20 @@ class _MyHomePageState extends State<MyHomePage> {
   void update_properties_hub()
   {
     if( _running_sensors.contains(("Gyro"))) {
-      client.thing.create_property("GYROSCOPE", client.access_token);
+      client.thing.update_property(client.thing.properties[0],
+                                         _gyro_values,
+                                         client.access_token);
     }
 
     if( _running_sensors.contains(("Accel"))) {
-      client.thing.create_property("ACCELEROMETER", client.access_token);
+       client.thing.update_property(client.thing.properties[1],
+                                         _user_accel_values,
+                                         client.access_token);
     }
   }
 
+  // test function, see if hub is interactive
+  // can be used to check response type
   Future<http.Response> interact_hub_http() async
   {
     var http_response = await http.get('https://dwd.tudelft.nl/api/things',

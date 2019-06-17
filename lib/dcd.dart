@@ -155,8 +155,17 @@ class DCD_client {
   final redirect_url = Uri.parse(
       'nl.tudelft.ide.dcd-mobile-app:/oauth2redirect');
   final basic_url = 'https://dwd.tudelft.nl/api';
-  String access_token;
+
+  String access_token; // holds access token for our hub connection
   Thing thing ; // holds thing for our client to update
+
+  // default constructor
+  DCD_client();
+  // Constructor using Json file for existing thing
+  DCD_client.from_file(Map<String, dynamic> json)
+  {
+    thing = json[thing];
+  }
 
   // creates thing in hub and puts it into client thing member
   Future<Thing> create_thing(String thing_name, String access_token) async
