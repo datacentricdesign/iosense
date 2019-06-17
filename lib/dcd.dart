@@ -1,7 +1,6 @@
 // Flutter side of Hub structures
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 class Thing
@@ -49,13 +48,18 @@ class Thing
   //updates a property in it of type prop_type
   Future<Property> create_property(String prop_type, String access_token) async
   {
+    if( this.id == null) throw Exception("Invalid thing id");
     var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties';
     //blank property,except type
     Property blank = Property(null, null, null, prop_type);
 
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
-                                                  'Bearer ${access_token}'},
+                                                  'Bearer ${access_token}',
+                                                  'Content-Type' :
+                                                  'application/json',
+                                                  'Response-Type':
+                                                  'application/json'},
                                         body: jsonEncode( blank.to_json()));
 
     if (http_response.statusCode != 200)
