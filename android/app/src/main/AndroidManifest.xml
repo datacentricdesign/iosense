@@ -8,7 +8,7 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="sensor_app"
+        android:label="Sensor Box"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
