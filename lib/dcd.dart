@@ -1,7 +1,5 @@
 // Flutter side of Hub structures
 import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 class Thing
@@ -33,7 +31,10 @@ class Thing
         readAt = json['readAt']
         /*keys =  json['keys']*/;
 
-  // arrow notation (replaces {return x;}
+
+
+
+  // arrow notation =>x (replaces  with {return x}
   Map<String, dynamic> to_json() =>
       {
           if(id!= null) 'id':id,
@@ -83,8 +84,9 @@ class Thing
   {
     var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties/${property.id}';
     property.values = values; // setting the values of the property that's replaced
-    var lala = jsonEncode(property.to_json());
-    debugPrint(lala);
+
+    // printing post message
+    //debugPrint(jsonEncode(property.to_json());
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
                                                   'Bearer ${access_token}',
@@ -97,7 +99,7 @@ class Thing
     if (http_response.statusCode != 200)
     {
       // If that response was not OK, throw an error.
-      throw Exception('Failed to post property to thing');
+      throw Exception('Failed to post property values ${property.values} to thing');
     }
 
     var json =  await jsonDecode(http_response.body);
@@ -130,6 +132,9 @@ class Property
         type = json['type'],
         values= json['values'];
 
+  // overriding function for jsonEncode Call
+  Map<String, dynamic> toJson() => to_json();
+
   // arrow notation (replaces {return x;}
   Map<String, dynamic> to_json() =>
       {
@@ -154,7 +159,6 @@ class DCD_client {
   final token_endpoint =
   Uri.parse('https://dwd.tudelft.nl/oauth2/token');
   final id = 'dcd-mobile-app';
-  //final secret = 'BZ2y0LDdoGxGqSHBS_0-Dm6wyz';
 
   // This is a URL on your application's server. The authorization server
   // will redirect the resource owner here once they've authorized the

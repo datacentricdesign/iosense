@@ -26,6 +26,7 @@ dependencies:
   sensors: ^0.4.0+1
   flutter_appauth: ^0.2.1+2
   http: ^0.12.0+2
+  shared_preferences: ^0.5.3+1
 
 dev_dependencies:
   flutter_test:

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:sensors/sensors.dart'; // flutter cross-platform sensor suite
 import 'package:flutter_appauth/flutter_appauth.dart'; // AppAuth in flutter
 import 'package:http/http.dart' as http;  //flutter http library
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dcd.dart' show DCD_client; // DCD(data centric design) definitions
 
@@ -62,6 +63,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // app authentication object
   FlutterAppAuth appAuth = FlutterAppAuth();
+
+  // share preferences file to save thing id's in hub if already created
+  SharedPreferences thing_prefs;
 
 
   @override
@@ -185,7 +189,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // registering our sensor stream subscriptions
   // called when stateful widget is inserted in widget tree.
   @override
-  void initState() {
+  void initState()  {
     super.initState(); // must be included
 
     // start subscription once, update values for each event time
@@ -205,15 +209,23 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             })
     );
+
+    // function to (in an async manner) load shared preferences object
+   get_shared_prefs();
+
   }
 
+  // get shared preferences object
+  get_shared_prefs() async =>  thing_prefs = await SharedPreferences.getInstance();
+
+  // Stream to hub function, connects to it and sends data
   Future stream_to_hub() async
   {
     var result = await appAuth.authorizeAndExchangeCode(
         AuthorizationTokenRequest(
-          client.id,
-          client.redirect_url.toString(),
-          discoveryUrl: "https://dwd.tudelft.nl/.well-known/openid-configuration"
+            client.id,
+            client.redirect_url.toString(),
+            discoveryUrl: "https://dwd.tudelft.nl/.well-known/openid-configuration"
           //clientSecret: client.secret,
           //serviceConfiguration: AuthorizationServiceConfiguration(
           //    client.authorization_endpoint.toString(),
@@ -224,25 +236,52 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     if (result != null)  {
-        // save the code verifier as it must be used when exchanging the token
-        client.access_token =  result.accessToken;
-        streaming_to_hub = true;
-        // two following functions depend on each other, so sequential
-        // processing is in order for correct functionality
-        await client.create_thing("myphonedevice", client.access_token);
-        await create_properties_hub();
+      // save the code verifier as it must be used when exchanging the token
+      client.access_token =  result.accessToken;
+      streaming_to_hub = true;
+
+      // two following functions depend on each other, so sequential
+      // processing is in order for correct functionality
+      await client.create_thing("myphonedevice", client.access_token);
+      await create_properties_hub();
     }
   }
 
-  create_properties_hub() async
+  // test function, see if hub is interactive
+  // can be used to check response type
+  // breakpoints can be used in variables to check response struct
+  // and link can be changed to change test hub directory
+  Future<http.Response> interact_hub_http() async
+  {
+    var http_response = await http.get('https://dwd.tudelft.nl/api/things',
+        headers: {'Authorization': 'Bearer ${client.access_token}'});
+
+    // delete things in hub
+    //var http_response = await http.delete('https://dwd.tudelft.nl/api/things/ID_FOR_DELETE',
+    //    headers: {'Authorization': 'Bearer ${client.access_token}'});
+
+
+    var aba = jsonDecode(http_response.body);
+    var thing = aba["things"];
+    var lala = thing[0]["id"];
+
+    return(http_response);
+  }
+
+
+  // Creates properties in hub that thing uses
+  void create_properties_hub() async
   {
     if( client.access_token == null) throw Exception("Invalid client access token");
 
       // Sequential creation of properties
       await client.thing.create_property("GYROSCOPE", client.access_token);
       await client.thing.create_property("ACCELEROMETER", client.access_token);
+      // after thing and client are created, save it to disk
+      await save_thing_to_disk();
   }
 
+  // Updates the properties that are selected in the hub
   void update_properties_hub()
   {
     // do not do anything until client is established
@@ -262,24 +301,16 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  // test function, see if hub is interactive
-  // can be used to check response type
-  // breakpoints can be used in variables to check response struct
-  // and link can be changed to change test hub directory
-  Future<http.Response> interact_hub_http() async
+
+
+  // saves connected client thing ids to disk using shared preferences
+  void save_thing_to_disk()
   {
-    //var http_response = await http.get('https://dwd.tudelft.nl/api/things',
-      //  headers: {'Authorization': 'Bearer ${client.access_token}'});
-    var http_response = await http.delete('https://dwd.tudelft.nl/api/things/my-thing-8a1e',
-        headers: {'Authorization': 'Bearer ${client.access_token}'});
-
-
-    var aba = jsonDecode(http_response.body);
-    var thing = aba["things"];
-    var lala = thing[0]["id"];
-
-    return(http_response);
+    // Get Json string encoding thing
+   var lala =  jsonEncode(client.thing.to_json());
+   debugPrint(lala);
   }
+
 
 }
 
