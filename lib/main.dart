@@ -249,7 +249,7 @@ class _MyHomePageState extends State<MyHomePage> {
           await save_thing_to_disk();
       } else {
         client.thing = Thing.from_json(jsonDecode(json_str));
-        debugPrint(json_str);
+        // debugPrint(client.thing.toString());
       }
 
     }

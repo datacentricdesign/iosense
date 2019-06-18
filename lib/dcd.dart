@@ -27,7 +27,9 @@ class Thing
         name = json['name'],
         description = json['description'],
         type = json['type'],
-        properties = json['properties'],
+        // taking a json input, for each object in properties
+        // will place a Property into the list,  created with said object
+        properties = [ for (var property_json in json['properties']) Property.from_json(property_json)],
         readAt = json['readAt']
         /*keys =  json['keys']*/;
 
@@ -99,7 +101,10 @@ class Thing
     if (http_response.statusCode != 200)
     {
       // If that response was not OK, throw an error.
-      throw Exception('Failed to post property values ${property.values} to thing');
+      throw Exception('''Failed to post property values 
+                      ${property.values} 
+                      to property with id ${property.id}, 
+                      from thing with id: ${this.id} ''');
     }
 
     var json =  await jsonDecode(http_response.body);
@@ -173,11 +178,6 @@ class DCD_client {
 
   // default constructor
   DCD_client();
-  // Constructor using Json file for existing thing
-  DCD_client.from_file(Map<String, dynamic> json)
-  {
-    thing = json[thing];
-  }
 
   // creates thing in hub and puts it into client thing member
   Future<Thing> create_thing(String thing_name, String access_token) async
