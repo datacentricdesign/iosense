@@ -7,7 +7,7 @@ import 'package:flutter_appauth/flutter_appauth.dart'; // AppAuth in flutter
 import 'package:http/http.dart' as http;  //flutter http library
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'dcd.dart' show DCD_client; // DCD(data centric design) definitions
+import 'dcd.dart' show DCD_client, Thing; // DCD(data centric design) definitions
 
 void main() => runApp(MyApp());
 
@@ -210,13 +210,9 @@ class _MyHomePageState extends State<MyHomePage> {
             })
     );
 
-    // function to (in an async manner) load shared preferences object
-   get_shared_prefs();
-
   }
 
-  // get shared preferences object
-  get_shared_prefs() async =>  thing_prefs = await SharedPreferences.getInstance();
+
 
   // Stream to hub function, connects to it and sends data
   Future stream_to_hub() async
@@ -242,8 +238,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
       // two following functions depend on each other, so sequential
       // processing is in order for correct functionality
-      await client.create_thing("myphonedevice", client.access_token);
-      await create_properties_hub();
+
+      // get shared preferences object
+      thing_prefs = await SharedPreferences.getInstance();
+      final json_str = thing_prefs.getString('cached_thing') ?? '';
+
+      if(json_str.isEmpty) {
+          await client.create_thing("myphonedevice", client.access_token);
+          await create_properties_hub();
+          await save_thing_to_disk();
+      } else {
+        client.thing = Thing.from_json(jsonDecode(json_str));
+        debugPrint(json_str);
+      }
+
     }
   }
 
@@ -307,8 +315,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void save_thing_to_disk()
   {
     // Get Json string encoding thing
-   var lala =  jsonEncode(client.thing.to_json());
-   debugPrint(lala);
+   var json_str =  jsonEncode(client.thing.to_json());
+   thing_prefs.setString("cached_thing", json_str);
+   //debugPrint(json_str);
   }
 
 
