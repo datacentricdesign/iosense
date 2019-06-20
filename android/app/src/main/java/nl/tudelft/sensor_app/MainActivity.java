@@ -1,4 +1,4 @@
-package com.tudelft.sensor_app;
+package nl.tudelft.sensor_app;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
