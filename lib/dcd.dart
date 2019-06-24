@@ -186,7 +186,7 @@ class DCD_client {
   {
     var addr_url = basic_url + '/things';
     // creating empty thing
-    Thing blank = Thing(null, thing_name,null, null, null, null );
+    Thing blank = Thing(null,thing_name,null, null, null, null );
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
                                                   'Bearer ${access_token}',
