@@ -121,6 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            // Accelerometer
             CheckboxListTile(
               title: Text("Accelerometer"),
               value: _running_sensors.contains("Accel"),
@@ -141,6 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
               visible: _running_sensors.contains("Accel"),
             ),
 
+            // Gyroscope
             CheckboxListTile(
               title: Text("Gyroscope"),
               value: _running_sensors.contains("Gyro"),
@@ -159,6 +161,47 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text("{x,y,z} rad/s  m/s^2.$gyroscope"),
               visible: _running_sensors.contains("Gyro"),
             ),
+            // Location tracking
+            CheckboxListTile(
+              title: Text("Location"),
+              value: _running_sensors.contains("Location"),
+              onChanged: (bool new_value) {
+                _running_sensors_changed = true; //set to stream has changed
+                streaming_to_hub =false; // stop streaming
+
+                // updating our state since running sensors changes UI
+                setState(() {
+                  new_value ? _running_sensors.add("Location") : _running_sensors
+                      .remove("Location");
+                });
+              },
+
+            ),
+            Visibility( // widget does not take any visible space when invisible
+              child: Text(" Location = "),
+              visible: _running_sensors.contains("Location"),
+            ),
+            // Camera feed
+            CheckboxListTile(
+              title: Text("Camera"),
+              value: _running_sensors.contains("Camera"),
+              onChanged: (bool new_value) {
+                _running_sensors_changed = true; //set to stream has changed
+                streaming_to_hub =false; // stop streaming
+
+                // updating our state since running sensors changes UI
+                setState(() {
+                  new_value ? _running_sensors.add("Camera") : _running_sensors
+                      .remove("Camera");
+                });
+              },
+
+            ),
+            Visibility( // widget does not take any visible space when invisible
+              child: Text("Camera = "),
+              visible: _running_sensors.contains("Camera"),
+            ),
+            // Stream to hub button
             Visibility( //if there are any sensors running
               child: RaisedButton(
                 onPressed: () async {
