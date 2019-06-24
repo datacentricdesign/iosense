@@ -89,7 +89,7 @@ class Thing
 
     // printing post message
     //debugPrint(jsonEncode(property.to_json());
-    var http_response = await http.post(addr_url,
+    var http_response = await http.put(addr_url,
                                         headers: {'Authorization':
                                                   'Bearer ${access_token}',
                                                   'Content-Type' :
