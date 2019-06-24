@@ -104,7 +104,9 @@ class Thing
       throw Exception('''Failed to post property values 
                       ${property.values} 
                       to property with id ${property.id}, 
-                      from thing with id: ${this.id} ''');
+                      from thing with id: ${this.id} 
+                      to the following link:
+                      ${addr_url}''');
     }
 
     var json =  await jsonDecode(http_response.body);
@@ -206,5 +208,18 @@ class DCD_client {
     return (this.thing);
   }
 
+  // structure for  deleting all things in hub
+  void delete_things_hub()
+  {
+    var delete = ["myphonedevice-590d","myphonedevice-e017" ]; // list of strings of id's for things in hub
+    // delete things in hub
+
+    delete.forEach((prop_id_to_delete) async{
+      var http_response = await http.delete('https://dwd.tudelft.nl/api/things/${prop_id_to_delete}',
+          headers: {'Authorization': 'Bearer ${this.access_token}'});
+
+    });
+
+  }
 
 }

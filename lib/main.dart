@@ -241,7 +241,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       // get shared preferences object
       thing_prefs = await SharedPreferences.getInstance();
-      final json_str = thing_prefs.getString('cached_thing') ?? '';
+      final json_str = await thing_prefs.getString('cached_thing') ?? '';
 
       if(json_str.isEmpty) {
           await client.create_thing("myphonedevice", client.access_token);
@@ -262,12 +262,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<http.Response> interact_hub_http() async
   {
     var http_response = await http.get('https://dwd.tudelft.nl/api/things',
-        headers: {'Authorization': 'Bearer ${client.access_token}'});
-
-    // delete things in hub
-    //var http_response = await http.delete('https://dwd.tudelft.nl/api/things/ID_FOR_DELETE',
-    //    headers: {'Authorization': 'Bearer ${client.access_token}'});
-
+                                        headers: {'Authorization':
+                                                  'Bearer ${client.access_token}'});
 
     var aba = jsonDecode(http_response.body);
     var thing = aba["things"];
@@ -310,7 +306,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
 
-
   // saves connected client thing ids to disk using shared preferences
   void save_thing_to_disk()
   {
@@ -319,6 +314,7 @@ class _MyHomePageState extends State<MyHomePage> {
    thing_prefs.setString("cached_thing", json_str);
    //debugPrint(json_str);
   }
+
 
 
 }
