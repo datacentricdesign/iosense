@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "106974499663",
+    "firebase_url": "https://iot-sensor-app-edbba.firebaseio.com",
+    "project_id": "iot-sensor-app-edbba",
+    "storage_bucket": "iot-sensor-app-edbba.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:106974499663:android:616cfaadec4eaaeb",
+        "android_client_info": {
+          "package_name": "nl.tudelft.sensor_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "106974499663-jj939sj55acbilio53os4laqqa9ahv39.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALu9vjBRoEchhtbqLqxvLJPpMEDGCbeMc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "106974499663-jj939sj55acbilio53os4laqqa9ahv39.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
