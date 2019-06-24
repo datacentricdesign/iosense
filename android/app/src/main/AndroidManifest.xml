@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="nl.tudelft.sensor_app">
 
+    <!-- permission control for Geolocation-->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
          In most cases you can leave this as-is, but you if you want to provide
@@ -30,4 +34,6 @@
             </intent-filter>
         </activity>
     </application>
+
+
 </manifest>

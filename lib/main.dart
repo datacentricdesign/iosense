@@ -6,6 +6,7 @@ import 'package:sensors/sensors.dart'; // flutter cross-platform sensor suite
 import 'package:flutter_appauth/flutter_appauth.dart'; // AppAuth in flutter
 import 'package:http/http.dart' as http;  //flutter http library
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart'; // package for geolocation
 
 import 'dcd.dart' show DCD_client, Thing; // DCD(data centric design) definitions
 
@@ -52,6 +53,14 @@ class _MyHomePageState extends State<MyHomePage> {
   List<double> _user_accel_values; // save accel values without gravity
   //  Rate of rotation around x, y, z axes, in rad/s.
   List<double> _gyro_values; // saves rotation values, in radians
+
+  // saves location data, 5D:
+  // latitude in degrees normalized to the interval [-90.0,+90.0]
+  // longitude in degrees normalized to the interval [-90.0,+90.0]
+  // altitude in meters
+  // speed at which the devices is traveling in m/s over ground
+  // timestamp time at which event was received from device
+  List<String> _loc_values;
 
 
   // stores list of subscriptions to sensor event streams (async data sources)
@@ -121,7 +130,9 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+
             // Accelerometer
+
             CheckboxListTile(
               title: Text("Accelerometer"),
               value: _running_sensors.contains("Accel"),
@@ -143,6 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
 
             // Gyroscope
+
             CheckboxListTile(
               title: Text("Gyroscope"),
               value: _running_sensors.contains("Gyro"),
@@ -161,7 +173,9 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text("{x,y,z} rad/s  m/s^2.$gyroscope"),
               visible: _running_sensors.contains("Gyro"),
             ),
+
             // Location tracking
+
             CheckboxListTile(
               title: Text("Location"),
               value: _running_sensors.contains("Location"),
@@ -178,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
             ),
             Visibility( // widget does not take any visible space when invisible
-              child: Text(" Location = "),
+              child: Text(" Location = ${_loc_values}"),
               visible: _running_sensors.contains("Location"),
             ),
             // Camera feed
@@ -246,6 +260,8 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState(); // must be included
 
     // start subscription once, update values for each event time
+
+    // Gyroscope subscription
     _stream_subscriptions.add(
         gyroscopeEvents.listen((GyroscopeEvent event) {
           setState(() {
@@ -254,6 +270,7 @@ class _MyHomePageState extends State<MyHomePage> {
         })
     );
 
+    // Accelerometer subscription
     _stream_subscriptions.add(
         userAccelerometerEvents.listen(
                 (UserAccelerometerEvent event) {
@@ -261,6 +278,25 @@ class _MyHomePageState extends State<MyHomePage> {
                 _user_accel_values = <double>[event.x, event.y, event.z];
               });
             })
+    );
+
+    // Location subscription
+    var geolocator = Geolocator();
+    // desired accuracy and the minimum distance change
+    // (in meters) before updates are sent to the application.
+    var location_options = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 1);
+    _stream_subscriptions.add(
+        geolocator.getPositionStream(location_options).listen(
+            (Position event) {
+              setState(() {
+                _loc_values = <String>[event.latitude.toString(),
+                                       event.longitude.toString(),
+                                       event.altitude.toString(),
+                                       event.speed.toString(),
+                                       event.timestamp.toString()];
+              });
+
+        })
     );
 
   }
