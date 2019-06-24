@@ -315,6 +315,12 @@ class _MyHomePageState extends State<MyHomePage> {
    //debugPrint(json_str);
   }
 
+  // remove shared preferences for file
+  void remove_thing_from_disk()
+  {
+    thing_prefs.remove("cached_thing");
+  }
+
 
 
 }
