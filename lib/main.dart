@@ -332,6 +332,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
       // get shared preferences object
       thing_prefs = await SharedPreferences.getInstance();
+      // delete everything in hub
+      await remove_thing_from_disk();
+      await client.delete_things_hub();
+
       final json_str = await thing_prefs.getString('cached_thing') ?? '';
 
       if(json_str.isEmpty) {

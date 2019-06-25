@@ -70,7 +70,7 @@ class Thing
                                  speed at which the device is traveling in m/s over ground
                                  timestamp time at which event was received from device""";
     }
-    
+
 
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
@@ -223,12 +223,10 @@ class DCD_client {
   }
 
   // structure for  deleting all things in hub
-  void delete_things_hub()
+  void delete_things_hub( List<String> ids_to_delete)
   {
-    var delete = ["myphonedevice-590d","myphonedevice-e017" ]; // list of strings of id's for things in hub
-    // delete things in hub
 
-    delete.forEach((prop_id_to_delete) async{
+    ids_to_delete.forEach((prop_id_to_delete) async{
       var http_response = await http.delete('https://dwd.tudelft.nl/api/things/${prop_id_to_delete}',
           headers: {'Authorization': 'Bearer ${this.access_token}'});
 
