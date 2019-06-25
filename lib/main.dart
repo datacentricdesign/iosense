@@ -151,8 +151,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
             ),
             Visibility( // widget does not take any visible space when invisible
-              child: Text("[x,y,z] (m/s^2) = $user_accelerometer",
-                          textAlign: TextAlign.start),
+              child: Text("[x,y,z] (m/s^2) = $user_accelerometer"),
+                          //textAlign: TextAlign.start),
               visible: _running_sensors.contains("Accel"),
             ),
 
@@ -173,8 +173,8 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             ),
             Visibility( // widget does not take any visible space when invisible
-              child: Text("[x,y,z] (rad/s) = $gyroscope",
-                          textAlign: TextAlign.start),
+              child: Text("[x,y,z] (rad/s) = $gyroscope"),
+                          //textAlign: TextAlign.start),
               visible: _running_sensors.contains("Gyro"),
             ),
 
@@ -196,7 +196,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
             ),
             Visibility( // widget does not take any visible space when invisible
-              child: Padding(
+              child: Padding (
                         padding:  EdgeInsets.symmetric(horizontal: 20.0),
                         child:  Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,7 +206,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               Text("Longitude ([-90.0,+90.0]°) = ${_loc_values[1]}"),
                               Text("Altitude (m) = ${_loc_values[2]}"),
                               Text("Speed over ground (m/s) = ${_loc_values[3]}"),
-                              Text("Timestamp = ${_loc_values[4]}"),
+                              Text("Timestamp (GMT) = ${_loc_values[4]}"),
                             ],
                           ),
                      ),
