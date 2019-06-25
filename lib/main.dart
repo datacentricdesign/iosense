@@ -151,7 +151,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
             ),
             Visibility( // widget does not take any visible space when invisible
-              child: Text("{x,y,z} m/s^2 = $user_accelerometer"),
+              child: Text("[x,y,z] (m/s^2) = $user_accelerometer",
+                          textAlign: TextAlign.start),
               visible: _running_sensors.contains("Accel"),
             ),
 
@@ -172,7 +173,8 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             ),
             Visibility( // widget does not take any visible space when invisible
-              child: Text("{x,y,z} rad/s  m/s^2.$gyroscope"),
+              child: Text("[x,y,z] (rad/s) = $gyroscope",
+                          textAlign: TextAlign.start),
               visible: _running_sensors.contains("Gyro"),
             ),
 
@@ -194,14 +196,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
             ),
             Visibility( // widget does not take any visible space when invisible
-              child: Column(
-                        children: <Widget>[
-                                    Text("Latitude ([-90.0,+90.0]°) = ${_loc_values[0]}"),
-                                    Text("Longitude ([-90.0,+90.0]°) = ${_loc_values[1]}"),
-                                    Text("Altitude (m) = ${_loc_values[2]}"),
-                                    Text("Speed over ground (m/s) = ${_loc_values[3]}"),
-                                    Text("Timestamp ( Date, time) = ${_loc_values[4]}"),
-                                  ],
+              child: Padding(
+                        padding:  EdgeInsets.symmetric(horizontal: 20.0),
+                        child:  Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            //mainAxisSize: ,
+                            children: <Widget>[
+                              Text("Latitude ([-90.0,+90.0]°) = ${_loc_values[0]}"),
+                              Text("Longitude ([-90.0,+90.0]°) = ${_loc_values[1]}"),
+                              Text("Altitude (m) = ${_loc_values[2]}"),
+                              Text("Speed over ground (m/s) = ${_loc_values[3]}"),
+                              Text("Timestamp (Date, Time) = ${_loc_values[4]}"),
+                            ],
+                          ),
                      ),
               visible: _running_sensors.contains("Location"),
             ),
