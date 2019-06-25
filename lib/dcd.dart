@@ -54,9 +54,23 @@ class Thing
   Future<Property> create_property(String prop_type, String access_token) async
   {
     if( this.id == null) throw Exception("Invalid thing id");
+    // basic address
     var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties';
-    //blank property,except type
+
     Property blank = Property(null, prop_type.toLowerCase(), null, prop_type);
+    //blank property,except type and name
+    // if it is location data
+    if(prop_type == "FIVE_DIMENSIONS")
+    {
+          blank.name = "5D LOCATION";
+          blank.description = """saves 5D location data:
+                                 latitude in degrees normalized to the interval [-90.0,+90.0]
+                                 longitude in degrees normalized to the interval [-90.0,+90.0]
+                                 altitude in meters
+                                 speed at which the device is traveling in m/s over ground
+                                 timestamp time at which event was received from device""";
+    }
+    
 
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
