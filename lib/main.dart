@@ -333,8 +333,8 @@ class _MyHomePageState extends State<MyHomePage> {
       // get shared preferences object
       thing_prefs = await SharedPreferences.getInstance();
       // delete everything in hub
-      await remove_thing_from_disk();
-      await client.delete_things_hub();
+      //await remove_thing_from_disk();
+      //await client.delete_things_hub(["myphonedevice-1fa7"]);
 
       final json_str = await thing_prefs.getString('cached_thing') ?? '';
 
@@ -383,6 +383,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Updates the properties that are selected in the hub
+  // current implementation updates all sensors at the rate of the fastest
   void update_properties_hub()
   {
     var sensor_list_size = 3;  // holds amount of sensors currently implemented

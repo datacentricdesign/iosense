@@ -62,8 +62,9 @@ class Thing
     // if it is location data
     if(prop_type == "FIVE_DIMENSIONS")
     {
-          blank.name = "5D LOCATION";
-          blank.description = """saves 5D location data:
+          blank.name = "5D location";
+          blank.description =
+                                 """saves 5D location data:
                                  latitude in degrees normalized to the interval [-90.0,+90.0]
                                  longitude in degrees normalized to the interval [-90.0,+90.0]
                                  altitude in meters
