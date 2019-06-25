@@ -194,7 +194,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
             ),
             Visibility( // widget does not take any visible space when invisible
-              child: Text(" Location = ${_loc_values}"),
+              child: Column(
+                        children: <Widget>[
+                                    Text("Latitude ([-90.0,+90.0]°) = ${_loc_values[0]}"),
+                                    Text("Longitude ([-90.0,+90.0]°) = ${_loc_values[1]}"),
+                                    Text("Altitude (m) = ${_loc_values[2]}"),
+                                    Text("Speed over ground (m/s) = ${_loc_values[3]}"),
+                                    Text("Timestamp ( Date, time) = ${_loc_values[4]}"),
+                                  ],
+                     ),
               visible: _running_sensors.contains("Location"),
             ),
             // Camera feed
