@@ -86,10 +86,10 @@ class _MyHomePageState extends State<MyHomePage> {
     // note that conditional member access operator is used (?.)
     // gyro values
     final List<String> gyroscope =
-    _gyro_values?.map((double v) => v.toStringAsFixed(1))?.toList();
+    _gyro_values?.map((double v) => v.toStringAsFixed(3))?.toList();
     // accel values
     final List<String> user_accelerometer = _user_accel_values
-        ?.map((double v) => v.toStringAsFixed(1))
+        ?.map((double v) => v.toStringAsFixed(3))
         ?.toList();
 
     // if we're streaming to hub, update the property values in the hub
@@ -206,7 +206,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               Text("Longitude ([-90.0,+90.0]°) = ${_loc_values[1]}"),
                               Text("Altitude (m) = ${_loc_values[2]}"),
                               Text("Speed over ground (m/s) = ${_loc_values[3]}"),
-                              Text("Timestamp (Date, Time) = ${_loc_values[4]}"),
+                              Text("Timestamp = ${_loc_values[4]}"),
                             ],
                           ),
                      ),
@@ -306,10 +306,10 @@ class _MyHomePageState extends State<MyHomePage> {
         geolocator.getPositionStream(location_options).listen(
             (Position event) {
               setState(() {
-                _loc_values = <String>[event.latitude.toString(),
-                                       event.longitude.toString(),
-                                       event.altitude.toString(),
-                                       event.speed.toString(),
+                _loc_values = <String>[event.latitude.toStringAsFixed(3),
+                                       event.longitude.toStringAsFixed(3),
+                                       event.altitude.toStringAsFixed(3),
+                                       event.speed.toStringAsFixed(3),
                                        event.timestamp.toString()];
               });
 
