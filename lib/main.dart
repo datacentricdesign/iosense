@@ -44,8 +44,10 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  // state variables to help with UI rendering and sensor updates
   bool _running_sensors_changed = false, streaming_to_hub = false;
 
+  // set holding currently running sensors
   final Set<String> _running_sensors = Set<String>();
 
 
@@ -58,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // latitude in degrees normalized to the interval [-90.0,+90.0]
   // longitude in degrees normalized to the interval [-90.0,+90.0]
   // altitude in meters
-  // speed at which the devices is traveling in m/s over ground
+  // speed at which the device is traveling in m/s over ground
   // timestamp time at which event was received from device
   List<String> _loc_values;
 
@@ -73,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // app authentication object
   FlutterAppAuth appAuth = FlutterAppAuth();
 
-  // share preferences file to save thing id's in hub if already created
+  // shared preferences file to save thing id's in hub if already created
   SharedPreferences thing_prefs;
 
 
@@ -94,7 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if(streaming_to_hub) update_properties_hub();
 
 
-
+    // UI building
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -283,7 +285,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // Location subscription
     var geolocator = Geolocator();
     // desired accuracy and the minimum distance change
-    // (in meters) before updates are sent to the application.
+    // (in meters) before updates are sent to the application - 1m in our case.
     var location_options = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 1);
     _stream_subscriptions.add(
         geolocator.getPositionStream(location_options).listen(
@@ -370,6 +372,8 @@ class _MyHomePageState extends State<MyHomePage> {
       // Sequential creation of properties
       await client.thing.create_property("GYROSCOPE", client.access_token);
       await client.thing.create_property("ACCELEROMETER", client.access_token);
+      // 5D location property vector
+      await client.thing.create_property("FIVE_DIMENSIONS", client.access_token);
       // after thing and client are created, save it to disk
       await save_thing_to_disk();
   }
@@ -377,21 +381,32 @@ class _MyHomePageState extends State<MyHomePage> {
   // Updates the properties that are selected in the hub
   void update_properties_hub()
   {
+    var sensor_list_size = 3;  // holds amount of sensors currently implemented
     // do not do anything until client is established
     if(client.thing == null) return;
 
     // do not do anything unless it is a running sensor and is established in hub
-    if( _running_sensors.contains(("Gyro")) && client.thing.properties.length ==2) {
-      client.thing.update_property(client.thing.properties[0],
+    if( _running_sensors.contains(("Gyro")) &&
+        client.thing.properties.length == sensor_list_size) {
+            client.thing.update_property(client.thing.properties[0],
                                          _gyro_values,
                                          client.access_token);
     }
 
-    if( _running_sensors.contains(("Accel")) && client.thing.properties.length ==2) {
-       client.thing.update_property(client.thing.properties[1],
-                                         _user_accel_values,
+    if( _running_sensors.contains(("Accel")) &&
+        client.thing.properties.length == sensor_list_size) {
+             client.thing.update_property(client.thing.properties[1],
+                                          _user_accel_values,
+                                          client.access_token);
+    }
+
+    if( _running_sensors.contains(("Location")) &&
+        client.thing.properties.length == sensor_list_size) {
+            client.thing.update_property(client.thing.properties[2],
+                                         _loc_values,
                                          client.access_token);
     }
+    
   }
 
 
