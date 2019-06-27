@@ -263,9 +263,15 @@ class _MyHomePageState extends State<MyHomePage> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   // If the Future is complete, display the preview.
-                  return Flexible(child: Padding(padding:  EdgeInsets.symmetric(horizontal: 50.0),
-                                                 child: CameraPreview(_controller))
-                                 );
+                  return(
+                    Flexible(child: Padding(padding: EdgeInsets.symmetric(vertical: 5.0),
+                                            child: AspectRatio(
+                                              aspectRatio: _controller.value.aspectRatio,
+                                              child: CameraPreview(_controller)
+                                            )
+                                    )
+                    )
+                  );
                 } else {
                   // Otherwise, display a loading indicator.
                   return Center(child: CircularProgressIndicator());
