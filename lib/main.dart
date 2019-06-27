@@ -132,8 +132,8 @@ class _MyHomePageState extends State<MyHomePage> {
         leading:
           Visibility(
             // doing this so I can get largest size possible for icon
-            child: new LayoutBuilder(builder: (context, constraint) {
-                      return new Icon(Icons.adjust,size: constraint.biggest.height *.85, color: Colors.red);
+            child:  LayoutBuilder(builder: (context, constraint) {
+                      return Icon(Icons.adjust,size: constraint.biggest.height *.85, color: Colors.red);
                    }),
             visible: streaming_to_hub,
           ),
@@ -263,7 +263,9 @@ class _MyHomePageState extends State<MyHomePage> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   // If the Future is complete, display the preview.
-                  return CameraPreview(_controller);
+                  return Flexible(child: Padding(padding:  EdgeInsets.symmetric(horizontal: 50.0),
+                                                 child: CameraPreview(_controller))
+                                 );
                 } else {
                   // Otherwise, display a loading indicator.
                   return Center(child: CircularProgressIndicator());

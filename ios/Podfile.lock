@@ -1,5 +1,7 @@
 PODS:
   - AppAuth (0.95.1)
+  - camera (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - flutter_appauth (0.0.1):
     - AppAuth
@@ -10,17 +12,21 @@ PODS:
     - Flutter
   - location_permissions (2.0.2):
     - Flutter
+  - path_provider (0.0.1):
+    - Flutter
   - sensors (0.0.1):
     - Flutter
   - shared_preferences (0.0.1):
     - Flutter
 
 DEPENDENCIES:
+  - camera (from `.symlinks/plugins/camera/ios`)
   - Flutter (from `.symlinks/flutter/ios`)
   - flutter_appauth (from `.symlinks/plugins/flutter_appauth/ios`)
   - geolocator (from `.symlinks/plugins/geolocator/ios`)
   - google_api_availability (from `.symlinks/plugins/google_api_availability/ios`)
   - location_permissions (from `.symlinks/plugins/location_permissions/ios`)
+  - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - sensors (from `.symlinks/plugins/sensors/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
 
@@ -29,6 +35,8 @@ SPEC REPOS:
     - AppAuth
 
 EXTERNAL SOURCES:
+  camera:
+    :path: ".symlinks/plugins/camera/ios"
   Flutter:
     :path: ".symlinks/flutter/ios"
   flutter_appauth:
@@ -39,6 +47,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/google_api_availability/ios"
   location_permissions:
     :path: ".symlinks/plugins/location_permissions/ios"
+  path_provider:
+    :path: ".symlinks/plugins/path_provider/ios"
   sensors:
     :path: ".symlinks/plugins/sensors/ios"
   shared_preferences:
@@ -46,11 +56,13 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   AppAuth: cd34aac431e5c77c46ec7f03935377faa8c5808b
+  camera: d56ad165545ae5a0ffb892376033760a969c68c8
   Flutter: 58dd7d1b27887414a370fcccb9e645c08ffd7a6a
   flutter_appauth: 19bf8864f437f642a5f10ea1aa7bb9a9d9478cb9
   geolocator: f3dd3b5b1761a15a4da00665774c5a8319e657d6
   google_api_availability: 163b30f802e6148c67f092aa4501c90ddd8eec8d
   location_permissions: 67cfaff583afbb027a9f9248196f4b79c40f3cdc
+  path_provider: f96fff6166a8867510d2c25fdcc346327cc4b259
   sensors: b5c565b45237fd2df1c347c14bf5ceeffdb7a2be
   shared_preferences: 1feebfa37bb57264736e16865e7ffae7fc99b523
 
