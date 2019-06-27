@@ -170,9 +170,6 @@ class Property
 
 }
 
-
-
-
 // client of DCD,
 // used to receive token, connect and interact with the hub.
 class DCD_client {

@@ -255,7 +255,21 @@ class _MyHomePageState extends State<MyHomePage> {
 
             ),
             Visibility( // widget does not take any visible space when invisible
-              child: Text("Camera = "),
+              // Wait until the controller is initialized before displaying the
+              // camera preview. Use a FutureBuilder to display a loading spinner
+              // until the controller has finished initializing.
+              child: FutureBuilder<void>(
+              future: _initializeControllerFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  // If the Future is complete, display the preview.
+                  return CameraPreview(_controller);
+                } else {
+                  // Otherwise, display a loading indicator.
+                  return Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
               visible: _running_sensors.contains("Camera"),
             ),
             // Stream to hub button
@@ -407,7 +421,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  // test function, see if hub is interactive
+  // Test function, see if hub is interactive
   // can be used to check response type
   // breakpoints can be used in variables to check response struct
   // and link can be changed to change test hub directory
