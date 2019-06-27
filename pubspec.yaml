@@ -29,6 +29,9 @@ dependencies:
   shared_preferences: ^0.5.3+1
   #firebase_messaging: ^5.0.4
   geolocator: ^5.0.1
+  camera: ^0.5.2+1 # camera package
+  path_provider: ^1.1.0  # plugin for finding commonly used locations on filesystem
+  path: ^1.6.2 # cross platform path manipulation
 
 dev_dependencies:
   flutter_test:

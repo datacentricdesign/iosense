@@ -7,6 +7,9 @@ import 'package:flutter_appauth/flutter_appauth.dart'; // AppAuth in flutter
 import 'package:http/http.dart' as http;  //flutter http library
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart'; // package for geolocation
+import 'package:camera/camera.dart'; // package for camera
+import 'package:path/path.dart' show join; // package for path manipulation
+import 'package:path_provider/path_provider.dart'; // package for path finding
 
 import 'dcd.dart' show DCD_client, Thing; // DCD(data centric design) definitions
 
