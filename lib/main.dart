@@ -65,6 +65,11 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  // camera controller, establishes a connection to the device’s camera
+  CameraController _controller;
+  // stores the Future returned from CameraController.initialize().
+  Future<void> _initializeControllerFuture;
+
   // state variables to help with UI rendering and sensor updates
   bool _running_sensors_changed = false, streaming_to_hub = false;
 
@@ -286,9 +291,14 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void dispose() {
     super.dispose();
+
+    // unsubscribe from open streams
     for (StreamSubscription<dynamic> subscription in _stream_subscriptions) {
       subscription.cancel();
     }
+
+    // Dispose of the controller when the widget is disposed.
+    _controller.dispose();
   }
 
   // registering our sensor stream subscriptions
@@ -336,6 +346,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
         })
     );
+
+    // camera controller to display the current output from the camera,
+    _controller = CameraController(
+      // Get a specific camera from the list of available cameras.
+      widget.camera,
+      // Define the resolution to use.
+      ResolutionPreset.medium,
+    );
+
+    // Next, initialize the controller. This returns a Future.
+    _initializeControllerFuture = _controller.initialize();
 
   }
 
