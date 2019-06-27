@@ -13,22 +13,39 @@ import 'package:path_provider/path_provider.dart'; // package for path finding
 
 import 'dcd.dart' show DCD_client, Thing; // DCD(data centric design) definitions
 
-void main() => runApp(MyApp());
+// async main to call our main app state, after retrieving camera
+Future<void> main() async {
+  // Obtain a list of the available cameras on the device.
+  final cameras = await availableCameras();
+
+  // Get a specific camera from the list of available cameras.
+  final firstCamera = cameras.first;
+
+  runApp(MyApp(active_camera: firstCamera,));
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+
+  // camera to be used
+  final CameraDescription active_camera;
+
+  // constructor with default attribution to field
+  MyApp({this.active_camera});
+
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData.dark(), // dark theme applied
-      home: MyHomePage(title: "Sensor Box"),
+      home: MyHomePage(title: "Sensor Box", camera: active_camera,),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key key, this.title, this.camera}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -38,7 +55,8 @@ class MyHomePage extends StatefulWidget {
   // case the title and appauth object) provided by the parent (in this case the App widget) and
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
-
+  // holds camera descrition
+  final CameraDescription camera;
   final String title;
 
   @override
