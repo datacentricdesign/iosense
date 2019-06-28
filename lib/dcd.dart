@@ -100,8 +100,8 @@ class Thing
   Future<void>update_property(Property property , List<dynamic> values, String access_token) async
   {
     var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties/${property.id}';
-    property.values = values; // setting the values of the property that's replaced
-
+    property.values = [ DateTime.now().millisecondsSinceEpoch, values]; // setting the values of the property that's replaced
+    //debugPrint(property.values);
     // printing post message
     //debugPrint(jsonEncode(property.to_json());
     var http_response = await http.put(addr_url,
@@ -165,7 +165,7 @@ class Property
         if(name!=null)'name': name,
         if(description!=null)'description': description,
         if(type!=null)'type': type,
-        if(values!=null)'values': values,
+        if(values!=null)'values': [values],
       };
 
 }
