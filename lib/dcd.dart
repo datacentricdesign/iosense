@@ -60,16 +60,16 @@ class Thing
     Property blank = Property(null, prop_type.toLowerCase(), null, prop_type);
     //blank property,except type and name
     // if it is location data
-    if(prop_type == "FIVE_DIMENSIONS")
+    if(prop_type == "FOUR_DIMENSIONS")
     {
-          blank.name = "5D location";
+          blank.name = "4D location";
           blank.description =
-                                 """saves 5D location data:
+                                 """saves 4D location data:
                                  latitude in degrees normalized to the interval [-90.0,+90.0]
                                  longitude in degrees normalized to the interval [-90.0,+90.0]
                                  altitude in meters
                                  speed at which the device is traveling in m/s over ground
-                                 timestamp time at which event was received from device""";
+                                 """;
     }
 
 
@@ -104,9 +104,9 @@ class Thing
 
     // struct of data to send to server value :[[ tmstamp, ... ]]
     var temp = <Object>[];
-    // if five dimensions, timestamp is given by last value
-    temp.add((property.type == "5_DIMENSIONS") ? (values[4].millisecondsSinceEpoch) : DateTime.now().millisecondsSinceEpoch);
-    temp += (property.type == "5_DIMENSIONS")? values : values.sublist(0, 4);
+    // if four dimensions, timestamp is given by last value
+    temp.add((property.type == "FOUR_DIMENSIONS") ? (values[4].millisecondsSinceEpoch) : DateTime.now().millisecondsSinceEpoch);
+    temp += (property.type != "FOUR_DIMENSIONS")? values : values.sublist(0, 4);
     property.values =  temp; // setting the values of the property that's replaced
 
 
@@ -141,7 +141,7 @@ class Thing
 }
 
 
-// supported types so far : ACCELEROMETER, GYROSCOPE
+// supported types so far : ACCELEROMETER, GYROSCOPE, 5_DIMENSIONS
 class Property
 {
   String id;

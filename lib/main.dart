@@ -328,7 +328,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState()  {
     super.initState(); // must be included
-
     // start subscription once, update values for each event time
 
     // Gyroscope subscription
@@ -413,7 +412,7 @@ class _MyHomePageState extends State<MyHomePage> {
       thing_prefs = await SharedPreferences.getInstance();
       // delete everything in hub
       //await remove_thing_from_disk();
-      //await client.delete_things_hub(["myphonedevice-1fa7"]);
+      //await client.delete_things_hub(["myphonedevice-5911", "myphonedevice-608e"]);
 
       final json_str = await thing_prefs.getString('cached_thing') ?? '';
 
@@ -456,7 +455,7 @@ class _MyHomePageState extends State<MyHomePage> {
       await client.thing.create_property("GYROSCOPE", client.access_token);
       await client.thing.create_property("ACCELEROMETER", client.access_token);
       // 5D location property vector
-      await client.thing.create_property("FIVE_DIMENSIONS", client.access_token);
+      await client.thing.create_property("FOUR_DIMENSIONS", client.access_token);
       // after thing and client are created, save it to disk
       await save_thing_to_disk();
   }
