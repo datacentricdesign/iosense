@@ -8,7 +8,7 @@ class Thing
   String name;
   String description;
   String type;
-  List<dynamic> properties;
+  List<Object> properties;
   int readAt;
   //Map<String, dynamic> keys;
 
@@ -97,11 +97,19 @@ class Thing
   }
 
   // updates property values given property, values and access token
-  Future<void>update_property(Property property , List<dynamic> values, String access_token) async
+  Future<void>update_property(Property property , List<Object> values, String access_token) async
   {
     var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties/${property.id}';
-    property.values = [ DateTime.now().millisecondsSinceEpoch, values]; // setting the values of the property that's replaced
-    //debugPrint(property.values);
+
+
+    // struct of data to send to server value :[[ tmstamp, ... ]]
+    var ab = <Object>[];
+    ab.add(DateTime.now().millisecondsSinceEpoch);
+    ab += values;
+    property.values =  ab; // setting the values of the property that's replaced
+
+
+    //var lala = (jsonEncode(property.to_json()));
     // printing post message
     //debugPrint(jsonEncode(property.to_json());
     var http_response = await http.put(addr_url,
