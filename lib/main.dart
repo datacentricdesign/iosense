@@ -21,7 +21,7 @@ Future<void> main() async {
   // Get a specific camera from the list of available cameras.
   final firstCamera = cameras.first;
 
-  runApp(MyApp(active_camera: firstCamera,));
+  runApp(MyApp(active_camera: firstCamera));
 }
 
 class MyApp extends StatelessWidget {
@@ -88,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // altitude in meters
   // speed at which the device is traveling in m/s over ground
   // timestamp time at which event was received from device
-  List<String> _loc_values;
+  List<dynamic> _loc_values;
 
 
   // stores list of subscriptions to sensor event streams (async data sources)
@@ -232,7 +232,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               Text("Longitude ([-90.0,+90.0]°) = ${_loc_values[1]}"),
                               Text("Altitude (m) = ${_loc_values[2]}"),
                               Text("Speed over ground (m/s) = ${_loc_values[3]}"),
-                              Text("Timestamp (GMT) = ${_loc_values[4]}"),
+                              Text("Timestamp (GMT) = ${_loc_values[4].toString()}"),
                             ],
                           ),
                      ),
@@ -359,11 +359,11 @@ class _MyHomePageState extends State<MyHomePage> {
         geolocator.getPositionStream(location_options).listen(
             (Position event) {
               setState(() {
-                _loc_values = <String>[event.latitude.toStringAsFixed(3),
-                                       event.longitude.toStringAsFixed(3),
-                                       event.altitude.toStringAsFixed(3),
-                                       event.speed.toStringAsFixed(3),
-                                       event.timestamp.toString()];
+                _loc_values = <dynamic>[event.latitude,
+                                       event.longitude,
+                                       event.altitude,
+                                       event.speed,
+                                       event.timestamp];
               });
 
         })

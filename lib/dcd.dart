@@ -97,16 +97,18 @@ class Thing
   }
 
   // updates property values given property, values and access token
-  Future<void>update_property(Property property , List<Object> values, String access_token) async
+  Future<void>update_property(Property property , List<dynamic> values, String access_token) async
   {
     var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties/${property.id}';
 
 
     // struct of data to send to server value :[[ tmstamp, ... ]]
-    var ab = <Object>[];
-    ab.add(DateTime.now().millisecondsSinceEpoch);
-    ab += values;
-    property.values =  ab; // setting the values of the property that's replaced
+    var temp = <Object>[];
+    // if five dimensions, timestamp is given by last value
+    temp.add((property.type == "5_DIMENSIONS") ? (values[4].millisecondsSinceEpoch) : DateTime.now().millisecondsSinceEpoch);
+    temp += (property.type == "5_DIMENSIONS")? values : values.sublist(0, 4);
+    property.values =  temp; // setting the values of the property that's replaced
+
 
 
     //var lala = (jsonEncode(property.to_json()));
