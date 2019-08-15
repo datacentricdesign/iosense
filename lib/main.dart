@@ -319,7 +319,7 @@ class _MyHomePageState extends State<MyHomePage> {
       subscription.cancel();
     }
 
-    // Dispose of the controller when the widget is disposed.
+    // Dispose of the camera controller when the widget is disposed.
     _controller.dispose();
   }
 
