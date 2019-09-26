@@ -194,7 +194,7 @@ class DCD_client {
   // client. The redirection will include the authorization code in the
   // query parameters.
   final redirect_url = Uri.parse(
-      'nl.tudelft.ide.dcd-mobile-app:/oauth2redirect');
+      'nl.tudelft.ide.dcd-app-mobile:/oauth2redirect');
   final basic_url = 'https://dwd.tudelft.nl/api';
 
   String access_token; // holds access token for our hub connection
