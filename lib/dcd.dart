@@ -187,7 +187,7 @@ class DCD_client {
   Uri.parse('https://dwd.tudelft.nl/oauth2/auth');
   final token_endpoint =
   Uri.parse('https://dwd.tudelft.nl/oauth2/token');
-  final id = 'dcd-mobile-app';
+  final id = 'clients:dcd-app-mobile';
 
   // This is a URL on your application's server. The authorization server
   // will redirect the resource owner here once they've authorized the

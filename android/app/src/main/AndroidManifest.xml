@@ -3,6 +3,7 @@
 
     <!-- permission control for Geolocation-->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
 
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
@@ -12,7 +13,7 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="Sensor Box"
+        android:label="DCD Sensor Box"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

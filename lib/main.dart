@@ -1,6 +1,7 @@
 import 'dart:async';  // async support
 import 'dart:convert';  // json en/decoder
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sensors/sensors.dart'; // flutter cross-platform sensor suite
 import 'package:flutter_appauth/flutter_appauth.dart'; // AppAuth in flutter
@@ -121,6 +122,11 @@ class _MyHomePageState extends State<MyHomePage> {
     // if we're streaming to hub, update the property values in the hub
     if(streaming_to_hub) update_properties_hub();
 
+    if(_loc_values == null) {
+      _loc_values = [ 0, 0, 0, 0, 0];
+    }
+
+
 
     // UI building
     return Scaffold(
@@ -228,11 +234,11 @@ class _MyHomePageState extends State<MyHomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             //mainAxisSize: ,
                             children: <Widget>[
-                              Text("Latitude ([-90.0,+90.0]°) = ${_loc_values[0]}"),
-                              Text("Longitude ([-90.0,+90.0]°) = ${_loc_values[1]}"),
-                              Text("Altitude (m) = ${_loc_values[2]}"),
-                              Text("Speed over ground (m/s) = ${_loc_values[3]}"),
-                              Text("Timestamp (GMT) = ${_loc_values[4].toString()}"),
+                              Text("Latitude ([-90.0,+90.0]°) = ${_loc_values[0]??" " }"),
+                              Text("Longitude ([-90.0,+90.0]°) = ${_loc_values[1]??" "}"),
+                              Text("Altitude (m) = ${_loc_values[2]??" "}"),
+                              Text("Speed over ground (m/s) = ${_loc_values[3]??" "}"),
+                              Text("Timestamp (GMT) = ${_loc_values[4]?.toString()}"),
                             ],
                           ),
                      ),
@@ -485,6 +491,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if( _running_sensors.contains(("Location")) &&
         client.thing.properties.length == sensor_list_size) {
+
+            if (listEquals<dynamic>(_loc_values, [0,0,0,0,0])) {
+              return;
+            }
+
             client.thing.update_property(client.thing.properties[2],
                                          _loc_values,
                                          client.access_token);
