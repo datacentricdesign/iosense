@@ -134,8 +134,8 @@ class Thing
                       ${addr_url}''');
     }
 
-    var json =  await jsonDecode(http_response.body);
-    return(Property.from_json(json));
+    //var json =  await jsonDecode(http_response.body);
+    //return(Property.from_json(json));
   }
 
 }
