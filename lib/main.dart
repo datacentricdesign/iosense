@@ -414,6 +414,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // two following functions depend on each other, so sequential
       // processing is in order for correct functionality
 
+      //await remove_thing_from_disk();
       // get shared preferences object
       thing_prefs = await SharedPreferences.getInstance();
       // delete everything in hub
@@ -426,6 +427,8 @@ class _MyHomePageState extends State<MyHomePage> {
           await client.create_thing("myphonedevice", client.access_token);
           await create_properties_hub();
           await save_thing_to_disk();
+
+
       } else {
         client.thing = Thing.from_json(jsonDecode(json_str));
         // debugPrint(client.thing.toString());

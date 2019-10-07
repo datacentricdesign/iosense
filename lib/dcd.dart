@@ -82,7 +82,7 @@ class Thing
                                                   'application/json'},
                                         body: jsonEncode( blank.to_json()));
 
-    if (http_response.statusCode != 200)
+    if (http_response.statusCode != 201)
     {
       // If that response was not OK, throw an error.
       throw Exception('Failed to post property to thing');
@@ -208,7 +208,7 @@ class DCD_client {
   {
     var addr_url = basic_url + '/things';
     // creating empty thing
-    Thing blank = Thing(null,thing_name,null, null, null, null );
+    Thing blank = Thing(null,thing_name,null, "test", null, null );
     var http_response = await http.post(addr_url,
                                         headers: {'Authorization':
                                                   'Bearer ${access_token}',
@@ -220,7 +220,7 @@ class DCD_client {
 
 
 
-    if (http_response.statusCode != 200) {
+    if (http_response.statusCode != 201) {
       // If that response was not OK, throw an error.
       throw Exception('Failed to post to thing');
     }
