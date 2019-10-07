@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData.dark(), // dark theme applied
-      home: MyHomePage(title: "Sensor Box", camera: active_camera,),
+      home: MyHomePage(title: "DCD Hub", camera: active_camera,),
     );
   }
 }
