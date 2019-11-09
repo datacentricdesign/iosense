@@ -1,16 +1,20 @@
 PODS:
-  - AppAuth (0.95.1)
+  - AppAuth (1.2.0):
+    - AppAuth/Core (= 1.2.0)
+    - AppAuth/ExternalUserAgent (= 1.2.0)
+  - AppAuth/Core (1.2.0)
+  - AppAuth/ExternalUserAgent (1.2.0)
   - camera (0.0.1):
     - Flutter
   - Flutter (1.0.0)
   - flutter_appauth (0.0.1):
-    - AppAuth
+    - AppAuth (= 1.2.0)
     - Flutter
-  - geolocator (5.0.1):
+  - geolocator (5.1.5):
     - Flutter
   - google_api_availability (2.0.1):
     - Flutter
-  - location_permissions (2.0.2):
+  - location_permissions (2.0.3):
     - Flutter
   - path_provider (0.0.1):
     - Flutter
@@ -31,7 +35,7 @@ DEPENDENCIES:
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
 
 SPEC REPOS:
-  https://github.com/cocoapods/specs.git:
+  trunk:
     - AppAuth
 
 EXTERNAL SOURCES:
@@ -55,17 +59,17 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences/ios"
 
 SPEC CHECKSUMS:
-  AppAuth: cd34aac431e5c77c46ec7f03935377faa8c5808b
-  camera: d56ad165545ae5a0ffb892376033760a969c68c8
-  Flutter: 58dd7d1b27887414a370fcccb9e645c08ffd7a6a
-  flutter_appauth: 19bf8864f437f642a5f10ea1aa7bb9a9d9478cb9
-  geolocator: f3dd3b5b1761a15a4da00665774c5a8319e657d6
+  AppAuth: bce82c76043657c99d91e7882e8a9e1a93650cd4
+  camera: 38cc83ae9a5667bb5a71c7d9edaf60a91920fd4e
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  flutter_appauth: df12d7d65012a380f1ab11311866cfcbfd55370f
+  geolocator: 80aba2bb48f8c7dfc5a8b70b9d13fc3edc8399c4
   google_api_availability: 163b30f802e6148c67f092aa4501c90ddd8eec8d
-  location_permissions: 67cfaff583afbb027a9f9248196f4b79c40f3cdc
-  path_provider: f96fff6166a8867510d2c25fdcc346327cc4b259
+  location_permissions: 195ff2a1182fa9029ef3f2653156961ee5a1e40b
+  path_provider: fb74bd0465e96b594bb3b5088ee4a4e7bb1f2a9d
   sensors: b5c565b45237fd2df1c347c14bf5ceeffdb7a2be
-  shared_preferences: 1feebfa37bb57264736e16865e7ffae7fc99b523
+  shared_preferences: 430726339841afefe5142b9c1f50cb6bd7793e01
 
-PODFILE CHECKSUM: aff02bfeed411c636180d6812254b2daeea14d09
+PODFILE CHECKSUM: 7fb83752f59ead6285236625b82473f90b1cb932
 
-COCOAPODS: 1.6.2
+COCOAPODS: 1.8.3
