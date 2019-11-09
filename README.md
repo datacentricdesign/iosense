@@ -1,4 +1,4 @@
-# sensor_app
-Sensor plug and play IoT app
-
+# DCD Hub Sensor App  
+Companion Flutter app (both iOS and Android) for Data Centric Design hub of IDE Faculty of TUDelft,
+to easily collect data from phone's sensors and stream it towards the hub.
 
