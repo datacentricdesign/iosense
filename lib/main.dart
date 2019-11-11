@@ -438,7 +438,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  // Test function, see if hub is interactive
+  // Test function, sees if hub is interactive
   // can be used to check response type
   // breakpoints can be used in variables to check response struct
   // and link can be changed to change test hub directory
@@ -466,7 +466,7 @@ class _MyHomePageState extends State<MyHomePage> {
       await client.thing.create_property("ACCELEROMETER", client.access_token);
       // 5D location property vector
       await client.thing.create_property("FOUR_DIMENSIONS", client.access_token);
-      // after thing and client are created, save it to disk
+      // after thing and client are created, save them to disk
       await save_thing_to_disk();
   }
 
@@ -506,7 +506,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
   }
-
 
   // saves connected client thing ids to disk using shared preferences
   void save_thing_to_disk()
