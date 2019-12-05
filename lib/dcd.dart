@@ -10,6 +10,7 @@ class Thing
   String type;
   List<Object> properties;
   int readAt;
+  String token;
   //Map<String, dynamic> keys;
 
   Thing(this.id,
@@ -30,8 +31,9 @@ class Thing
         // taking a json input, for each object in properties
         // will place a Property into the list,  created with said object
         properties = [ for (var property_json in json['properties']) Property.from_json(property_json)],
-        readAt = json['readAt']
-        /*keys =  json['keys']*/;
+        readAt = json['readAt'],
+        token =   json['keys'].token;
+
 
 
 
@@ -220,7 +222,7 @@ class DCD_client {
 
                                         );
 
-
+    var blabla = jsonEncode(blank.to_json());
 
     if (http_response.statusCode != 201) {
       // If that response was not OK, throw an error.
