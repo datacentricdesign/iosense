@@ -505,6 +505,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                          client.access_token);
     }
 
+
+    interact_hub_http();
   }
 
   // saves connected client thing ids to disk using shared preferences

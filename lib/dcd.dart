@@ -206,7 +206,7 @@ class DCD_client {
   // creates thing in hub and puts it into client thing member
   Future<Thing> create_thing(String thing_name, String access_token) async
   {
-    var addr_url = basic_url + '/things';
+    var addr_url = basic_url + '/things?jwt=true';
     // creating empty thing
     Thing blank = Thing(null,thing_name,null, "test", null, null );
     var http_response = await http.post(addr_url,
@@ -216,7 +216,9 @@ class DCD_client {
                                                   'application/json',
                                                   'Response-Type':
                                                   'application/json'},
-                                        body: jsonEncode(blank.to_json()));
+                                        body: jsonEncode(blank.to_json()),
+
+                                        );
 
 
 
