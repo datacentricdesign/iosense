@@ -100,7 +100,7 @@ class Thing
   }
 
   // updates property values given property, values and access token
-  Future<void>update_property(Property property , List<dynamic> values, String access_token) async
+  Future<void>update_property_http(Property property , List<dynamic> values, String access_token) async
   {
     var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties/${property.id}';
 
