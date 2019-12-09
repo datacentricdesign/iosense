@@ -11,6 +11,7 @@ import 'package:geolocator/geolocator.dart'; // package for geolocation
 import 'package:camera/camera.dart'; // package for camera
 import 'package:path/path.dart' show join; // package for path manipulation
 import 'package:path_provider/path_provider.dart'; // package for path finding
+import 'package:mqtt_client/mqtt_client.dart'; // package for MQTT connection
 
 import 'dcd.dart' show DCD_client, Thing; // DCD(data centric design) definitions
 

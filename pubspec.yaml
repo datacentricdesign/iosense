@@ -32,6 +32,7 @@ dependencies:
   camera: ^0.5.2+2 # camera package
   path_provider: ^1.2.0  # plugin for finding commonly used locations on filesystem
   path: ^1.6.2 # cross platform path manipulation
+  mqtt_client: ^5.6.1 # mqtt plugin
 
 dev_dependencies:
   flutter_test:
