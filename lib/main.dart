@@ -107,8 +107,8 @@ class _MyHomePageState extends State<MyHomePage> {
   // shared preferences file to save thing id's in hub if already created
   SharedPreferences thing_prefs;
 
-  // MQTT client
-  MqttClient mqtt_client;
+  // MQTT client broker definition
+  MqttClient mqtt_client = MqttClient('dwd.tudelft.nl', '');
 
   @override
   Widget build(BuildContext context) {
@@ -439,8 +439,26 @@ class _MyHomePageState extends State<MyHomePage> {
         // debugPrint(client.thing.toString());
       }
 
-      // set up MQTT channel
-      mqtt_client = MqttClient('dwd.tudelft.nl', "clients:dcd-app-mobile" + client.thing.id.substring(25));
+
+
+      /// Create a connection message to use or use the default one. The default one sets the
+      /// client identifier, any supplied username/password, the default keepalive interval(60s)
+      /// and clean session, an example of a specific one below.
+      final MqttConnectMessage connMess = MqttConnectMessage()
+          .withClientIdentifier(' "clients:dcd-app-mobile" + client.thing.id.substring(24)')
+          .keepAliveFor(20) // Must agree with the keep alive set above or not set
+          .withWillTopic('willtopic') // If you set this you must set a will message
+          .withWillMessage('My Will message')
+          .startClean() // Non persistent session for testing
+          .withWillQos(MqttQos.atLeastOnce)
+          .authenticateAs(client.thing.id,client.thing.token);
+      print('EXAMPLE::dwd client connecting....');
+
+      // set connection message
+      mqtt_client.connectionMessage = connMess;
+
+      connect_mqtt();
+
     }
   }
 
@@ -531,6 +549,27 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
 
+  // connects mqtt client to the hub
+  void connect_mqtt() async{
+    // Try connecting to mqtt client
+    try {
+      await mqtt_client.connect();
+    } on Exception catch (e) {
+      print('EXAMPLE::client exception - $e');
+      mqtt_client.disconnect();
+    }
+
+    /// Check we are connected
+    if (mqtt_client.connectionStatus.state == MqttConnectionState.connected) {
+      print('DCD hub client connected');
+    } else {
+      /// Use status here rather than state if you also want the broker return code.
+      print(
+          'DCD hub client client connection failed - disconnecting, status is ${mqtt_client.connectionStatus}');
+      mqtt_client.disconnect();
+    }
+
+  }
 
 }
 
