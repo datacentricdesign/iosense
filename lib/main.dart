@@ -445,7 +445,7 @@ class _MyHomePageState extends State<MyHomePage> {
       /// client identifier, any supplied username/password, the default keepalive interval(60s)
       /// and clean session, an example of a specific one below.
       final MqttConnectMessage connMess = MqttConnectMessage()
-          .withClientIdentifier(' "clients:dcd-app-mobile" + client.thing.id.substring(24)')
+          .withClientIdentifier( "clients:dcd-app-mobile" + client.thing.id.substring(24))
           .keepAliveFor(20) // Must agree with the keep alive set above or not set
           .withWillTopic('willtopic') // If you set this you must set a will message
           .withWillMessage('My Will message')

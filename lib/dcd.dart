@@ -32,14 +32,14 @@ class Thing
         // will place a Property into the list,  created with said object
         properties = [ for (var property_json in json['properties']) Property.from_json(property_json)],
         readAt = json['readAt'],
-        token =   json['keys']['jwt'];
+        token =  json['token'] ?? json['keys']['jwt'] ;
 
 
 
 
 
   // arrow notation =>x (replaces  with {return x}
-  Map<String, dynamic> to_json() =>
+  Map<String, dynamic> to_json([bool hide_token = false]) =>
       {
 
           if(id!= null) 'id':id,
@@ -48,7 +48,7 @@ class Thing
           if(type!=null)'type': type,
           if(properties!=null)'properties': properties,
           if(readAt!=null)'readAt': readAt,
-          if(token!=null)'token': token,
+          if(token!=null && !hide_token)'token': token,
       };
 
 
