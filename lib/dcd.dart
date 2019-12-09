@@ -48,6 +48,7 @@ class Thing
           if(type!=null)'type': type,
           if(properties!=null)'properties': properties,
           if(readAt!=null)'readAt': readAt,
+          if(token!=null)'token': token,
       };
 
 

@@ -107,6 +107,8 @@ class _MyHomePageState extends State<MyHomePage> {
   // shared preferences file to save thing id's in hub if already created
   SharedPreferences thing_prefs;
 
+  // MQTT client
+  MqttClient mqtt_client;
 
   @override
   Widget build(BuildContext context) {
@@ -432,10 +434,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
       } else {
+        var lala = jsonDecode(json_str);
         client.thing = Thing.from_json(jsonDecode(json_str));
         // debugPrint(client.thing.toString());
       }
 
+      // set up MQTT channel
+      mqtt_client = MqttClient('dwd.tudelft.nl', "clients:dcd-app-mobile" + client.thing.id.substring(25));
     }
   }
 
