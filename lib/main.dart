@@ -108,7 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
   SharedPreferences thing_prefs;
 
   // MQTT client broker definition
-  MqttClient mqtt_client = MqttClient('dwd.tudelft.nl', '');
+  MqttClient mqtt_client = MqttClient.withPort('dwd.tudelft.nl','', 1883);
 
   @override
   Widget build(BuildContext context) {
@@ -555,16 +555,16 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       await mqtt_client.connect();
     } on Exception catch (e) {
-      print('EXAMPLE::client exception - $e');
+      debugPrint('EXAMPLE::client exception - $e');
       mqtt_client.disconnect();
     }
 
     /// Check we are connected
     if (mqtt_client.connectionStatus.state == MqttConnectionState.connected) {
-      print('DCD hub client connected');
+      debugPrint('DCD hub client connected');
     } else {
       /// Use status here rather than state if you also want the broker return code.
-      print(
+      debugPrint(
           'DCD hub client client connection failed - disconnecting, status is ${mqtt_client.connectionStatus}');
       mqtt_client.disconnect();
     }
