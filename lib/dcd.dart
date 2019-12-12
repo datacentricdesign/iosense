@@ -142,6 +142,8 @@ class Thing
     //return(Property.from_json(json));
   }
 
+  void update_property_mqtt(Object properti, List<double> gyro_values, String access_token) {}
+
 }
 
 

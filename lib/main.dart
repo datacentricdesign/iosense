@@ -505,16 +505,27 @@ class _MyHomePageState extends State<MyHomePage> {
     // do not do anything unless it is a running sensor and is established in hub
     if( _running_sensors.contains(("Gyro")) &&
         client.thing.properties.length == sensor_list_size) {
-            client.thing.update_property_http(client.thing.properties[0],
+/*            client.thing.update_property_http(client.thing.properties[0],
                                          _gyro_values,
-                                         client.access_token);
+                                         client.access_token);*/
+
+            client.thing.update_property_mqtt(client.thing.properties[0],
+                                          _gyro_values,
+                                          client.access_token);
+
     }
 
     if( _running_sensors.contains(("Accel")) &&
         client.thing.properties.length == sensor_list_size) {
+/*
              client.thing.update_property_http(client.thing.properties[1],
                                           _user_accel_values,
                                           client.access_token);
+*/
+
+             client.thing.update_property_mqtt(client.thing.properties[1],
+                                               _user_accel_values,
+                                               client.access_token);
     }
 
     if( _running_sensors.contains(("Location")) &&
@@ -524,9 +535,14 @@ class _MyHomePageState extends State<MyHomePage> {
               return;
             }
 
-            client.thing.update_property_http(client.thing.properties[2],
+/*            client.thing.update_property_http(client.thing.properties[2],
                                          _loc_values,
-                                         client.access_token);
+                                         client.access_token);*/
+
+            client.thing.update_property_mqtt(client.thing.properties[2],
+                _loc_values,
+                client.access_token);
+
     }
 
 
