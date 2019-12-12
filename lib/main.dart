@@ -511,7 +511,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
             client.thing.update_property_mqtt(client.thing.properties[0],
                                           _gyro_values,
-                                          client.access_token);
+                                          client.thing.token);
 
     }
 
@@ -525,7 +525,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
              client.thing.update_property_mqtt(client.thing.properties[1],
                                                _user_accel_values,
-                                               client.access_token);
+                                               client.thing.token);
     }
 
     if( _running_sensors.contains(("Location")) &&
@@ -540,8 +540,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                          client.access_token);*/
 
             client.thing.update_property_mqtt(client.thing.properties[2],
-                _loc_values,
-                client.access_token);
+                                              _loc_values,
+                                              client.thing.token);
 
     }
 
