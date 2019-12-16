@@ -1,5 +1,6 @@
 import 'dart:async';  // async support
 import 'dart:convert';  // json en/decoder
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -441,23 +442,38 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
 
-      /// Create a connection message to use or use the default one. The default one sets the
-      /// client identifier, any supplied username/password, the default keepalive interval(60s)
-      /// and clean session, an example of a specific one below.
-      final MqttConnectMessage connMess = MqttConnectMessage()
-          .withClientIdentifier( "clients:dcd-app-mobile" + client.thing.id.substring(24))
-          .keepAliveFor(20) // Must agree with the keep alive set above or not set
-          .withWillTopic('willtopic') // If you set this you must set a will message
-          .withWillMessage('My Will message')
-          .startClean() // Non persistent session for testing
-          .withWillQos(MqttQos.atLeastOnce)
-          .authenticateAs(client.thing.id,client.thing.token);
-      print('EXAMPLE::dwd client connecting....');
+      /// Set logging on if needed, defaults to off
+      mqtt_client.logging(on: true);
 
-      // set connection message
-      mqtt_client.connectionMessage = connMess;
+      /// If you intend to use a keep alive value in your connect message that is not the default(60s)
+      /// you must set it here
+      mqtt_client.keepAlivePeriod = 20;
+      mqtt_client.secure = true;
 
-      connect_mqtt();
+      /// Add the unsolicited disconnection callback
+      mqtt_client.onDisconnected = onDisconnected;
+
+      /// Add the successful connection callback
+      mqtt_client.onConnected = onConnected;
+
+      /// Add a subscribed callback, there is also an unsubscribed callback if you need it.
+      /// You can add these before connection or change them dynamically after connection if
+      /// you wish. There is also an onSubscribeFail callback for failed subscriptions, these
+      /// can fail either because you have tried to subscribe to an invalid topic or the broker
+      /// rejects the subscribe request.
+      mqtt_client.onSubscribed = onSubscribed;
+
+
+      /// Set a ping received callback if needed, called whenever a ping response(pong) is received
+      /// from the broker.
+      mqtt_client.pongCallback = pong;
+
+
+
+     mqtt_client.logging(on: true);
+
+     // set and start connection on MQTT port
+      connect_mqtt(client.thing.id, client.thing.token);
 
     }
   }
@@ -569,12 +585,27 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
   // connects mqtt client to the hub
-  void connect_mqtt() async{
+  void connect_mqtt(String username, String password) async{
+
+    // set connection message
+    final MqttConnectMessage connMess = MqttConnectMessage()
+        .withClientIdentifier("clients:dcd-app-mobile" + client.thing.id.substring(24))
+        .keepAliveFor(60) // Must agree with the keep alive set above or not set
+        .withWillQos(MqttQos.atLeastOnce)
+        .startClean()
+        .authenticateAs(username, password);
+    debugPrint('EXAMPLE::dwd mqtt client connecting....');
+
+    // setting connection message
+    mqtt_client.connectionMessage = connMess;
+
+
     // Try connecting to mqtt client
     try {
       await mqtt_client.connect();
     } on Exception catch (e) {
       debugPrint('EXAMPLE::client exception - $e');
+      mqtt_client.disconnect();
     }
 
     /// Check we are connected
@@ -587,6 +618,31 @@ class _MyHomePageState extends State<MyHomePage> {
       mqtt_client.disconnect();
     }
 
+
+  }
+
+  /// The subscribed callback
+  void onSubscribed(String topic) {
+    debugPrint('Subscription confirmed for topic $topic');
+  }
+
+  /// The unsolicited disconnect callback
+  void onDisconnected() {
+    debugPrint(':OnDisconnected mqtt_client callback - mqtt_client disconnection');
+    if (mqtt_client.connectionStatus.returnCode == MqttConnectReturnCode.solicited) {
+      debugPrint('OnDisconnected callback is solicited, this is correct');
+    }
+  }
+
+  /// The successful connect callback
+  void onConnected() {
+    debugPrint(
+        'OnConnected mqtt_client callback - mqtt_client connection was sucessful');
+  }
+
+  /// Pong callback
+  void pong() {
+    debugPrint('Ping response mqtt_client callback invoked');
   }
 
 }
