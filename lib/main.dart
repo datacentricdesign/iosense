@@ -108,7 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
   SharedPreferences thing_prefs;
 
   // MQTT client broker definition
-  MqttClient mqtt_client = MqttClient.withPort('dwd.tudelft.nl','', 1883);
+  MqttClient mqtt_client = MqttClient.withPort('dwd.tudelft.nl','', 8883);
 
   @override
   Widget build(BuildContext context) {
@@ -510,8 +510,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                          client.access_token);*/
 
             client.thing.update_property_mqtt(client.thing.properties[0],
-                                          _gyro_values,
-                                          client.thing.token);
+                                              _gyro_values,
+                                              client.thing.token,
+                                              mqtt_client);
 
     }
 
@@ -525,7 +526,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
              client.thing.update_property_mqtt(client.thing.properties[1],
                                                _user_accel_values,
-                                               client.thing.token);
+                                               client.thing.token,
+                                               mqtt_client);
     }
 
     if( _running_sensors.contains(("Location")) &&
@@ -541,7 +543,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
             client.thing.update_property_mqtt(client.thing.properties[2],
                                               _loc_values,
-                                              client.thing.token);
+                                              client.thing.token,
+                                              mqtt_client);
 
     }
 
@@ -572,7 +575,6 @@ class _MyHomePageState extends State<MyHomePage> {
       await mqtt_client.connect();
     } on Exception catch (e) {
       debugPrint('EXAMPLE::client exception - $e');
-      mqtt_client.disconnect();
     }
 
     /// Check we are connected

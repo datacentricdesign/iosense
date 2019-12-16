@@ -1,6 +1,7 @@
 // Flutter side of Hub structures
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mqtt_client/mqtt_client.dart'; // package for MQTT connection
 
 class Thing
 {
@@ -142,8 +143,22 @@ class Thing
     //return(Property.from_json(json));
   }
 
-  void update_property_mqtt(Property property , List<dynamic> values, String thing_token)
+  void update_property_mqtt(Property property , List<dynamic> values, String thing_token, MqttClient mqtt_client)
   {
+      var topic_url = '/things/${this.id}/properties/${property.id}';
+
+
+      // struct of data to send to server value :[[ tmstamp, ... ]]
+      var temp = <Object>[];
+      // if four dimensions, timestamp is given by last value
+      temp.add((property.type == "FOUR_DIMENSIONS") ? (values[4].millisecondsSinceEpoch) : DateTime.now().millisecondsSinceEpoch);
+      temp += (property.type != "FOUR_DIMENSIONS")? values : values.sublist(0, 4);
+      property.values =  temp; // setting the values of the property that's replaced
+
+      final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
+      builder.addString(jsonEncode(property.to_json()));
+
+      mqtt_client.publishMessage(topic_url, MqttQos.exactlyOnce, builder.payload);
 
   }
 
