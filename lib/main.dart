@@ -1,5 +1,6 @@
 import 'dart:async';  // async support
 import 'dart:convert';  // json en/decoder
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -444,7 +445,7 @@ class _MyHomePageState extends State<MyHomePage> {
       /// Create a connection message to use or use the default one. The default one sets the
       /// client identifier, any supplied username/password, the default keepalive interval(60s)
       /// and clean session, an example of a specific one below.
-      final MqttConnectMessage connMess = MqttConnectMessage()
+     /* final MqttConnectMessage connMess = MqttConnectMessage()
           .withClientIdentifier( "clients:dcd-app-mobile" + client.thing.id.substring(24))
           .keepAliveFor(20) // Must agree with the keep alive set above or not set
           .withWillTopic('willtopic') // If you set this you must set a will message
@@ -453,11 +454,19 @@ class _MyHomePageState extends State<MyHomePage> {
           .withWillQos(MqttQos.atLeastOnce)
           .authenticateAs(client.thing.id,client.thing.token);
       print('EXAMPLE::dwd client connecting....');
+    */
 
+     mqtt_client.clientIdentifier = "clients:dcd-app-mobile" + client.thing.id.substring(24);
+     mqtt_client.port = 8883;
+     mqtt_client.secure = true;
+     mqtt_client.setProtocolV311();
+     mqtt_client.securityContext = SecurityContext.defaultContext;
+
+     mqtt_client.logging(on: true);
       // set connection message
-      mqtt_client.connectionMessage = connMess;
+      //mqtt_client.connectionMessage = connMess;
 
-      connect_mqtt();
+      connect_mqtt(client.thing.id, client.thing.token);
 
     }
   }
@@ -569,10 +578,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
   // connects mqtt client to the hub
-  void connect_mqtt() async{
+  void connect_mqtt(String username, String password) async{
     // Try connecting to mqtt client
     try {
-      await mqtt_client.connect();
+      await mqtt_client.connect(username, password);
     } on Exception catch (e) {
       debugPrint('EXAMPLE::client exception - $e');
     }
