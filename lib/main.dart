@@ -441,7 +441,6 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
 
-
       /// Set logging on if needed, defaults to off
       mqtt_client.logging(on: true);
 
@@ -472,8 +471,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
      mqtt_client.logging(on: true);
 
-     // set and start connection on MQTT port
-      connect_mqtt(client.thing.id, client.thing.token);
+     connect_mqtt(client.thing.id, client.thing.token);
 
     }
   }
@@ -599,10 +597,9 @@ class _MyHomePageState extends State<MyHomePage> {
     // setting connection message
     mqtt_client.connectionMessage = connMess;
 
-
     // Try connecting to mqtt client
     try {
-      await mqtt_client.connect();
+      await mqtt_client.connect(username, password);
     } on Exception catch (e) {
       debugPrint('EXAMPLE::client exception - $e');
       mqtt_client.disconnect();
