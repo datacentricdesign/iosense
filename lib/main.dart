@@ -71,6 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // camera controller, establishes a connection to the device’s camera
   CameraController _controller;
+
   // stores the Future returned from CameraController.initialize().
   Future<void> _initializeControllerFuture;
 
@@ -80,18 +81,18 @@ class _MyHomePageState extends State<MyHomePage> {
   // set holding currently running sensors
   final Set<String> _running_sensors = Set<String>();
 
-
   // accelerometer forces along x, y and z axes , in m/s^2
   List<double> _user_accel_values; // save accel values without gravity
+
   //  Rate of rotation around x, y, z axes, in rad/s.
   List<double> _gyro_values; // saves rotation values, in radians
 
   // saves location data, 5D:
-  // latitude in degrees normalized to the interval [-90.0,+90.0]
+  /* latitude in degrees normalized to the interval [-90.0,+90.0]
   // longitude in degrees normalized to the interval [-90.0,+90.0]
   // altitude in meters
   // speed at which the device is traveling in m/s over ground
-  // timestamp time at which event was received from device
+  // timestamp time at which event was received from device */
   List<dynamic> _loc_values;
 
 
@@ -131,8 +132,6 @@ class _MyHomePageState extends State<MyHomePage> {
     if(_loc_values == null) {
       _loc_values = [ 0, 0, 0, 0, 0];
     }
-
-
 
     // Building the UI
     return Scaffold(
@@ -321,7 +320,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // unregistering our sensor stream subscriptions
+  // Unregistering our sensor stream subscriptions
   @override
   void dispose() {
     super.dispose();
@@ -335,7 +334,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _controller.dispose();
   }
 
-  // registering our sensor stream subscriptions
+  // Registering our sensor stream subscriptions
   // called when stateful widget is inserted in widget tree.
   @override
   void initState()
@@ -358,8 +357,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   }
 
-
-
   // Stream to hub function, connects to it and sends data
   Future stream_to_hub() async
   {
@@ -376,42 +373,41 @@ class _MyHomePageState extends State<MyHomePage> {
       client.access_token =  result.accessToken;
       streaming_to_hub = true;
 
-      // two following functions depend on each other, so sequential
-      // processing is in order for correct functionality
 
+      /*
+          The two following functions depend on each other, so sequential
+          processing is in order for correct functionality
+      */
       //await remove_thing_from_disk();
+
       // get shared preferences object
       thing_prefs = await SharedPreferences.getInstance();
-      // delete everything in hub
+
+      // test functions,
+      /* delete everything in hub
       //await remove_thing_from_disk();
       //await client.delete_things_hub(["myphonedevice-5911", "myphonedevice-608e"]);
+      */
 
       final json_str = await thing_prefs.getString('cached_thing') ?? '';
 
-      // load phone thing or create it
-      if(json_str.isEmpty) {
-          await client.create_thing("myphonedevice", client.access_token);
-          await create_properties_hub();
-          await save_thing_to_disk();
-      } else {
-        var lala = jsonDecode(json_str);
-        client.thing = Thing.from_json(jsonDecode(json_str));
-        // debugPrint(client.thing.toString());
-      }
+     // load phone thing or create it
+     create_or_load_thing(json_str);
 
      // Set up MQTT broker settings and callbacks
      set_up_mqtt();
 
      // start connection on MQTT port
      connect_mqtt(client.thing.id, client.thing.token);
-
     }
   }
 
-  // Test function, sees if hub is interactive
+  // Test function,
+  /* sees if hub is interactive
   // can be used to check response type
   // breakpoints can be used in variables to check response struct
   // and link can be changed to change test hub directory
+  */
   Future<http.Response> interact_hub_http() async
   {
     var http_response = await http.get('https://dwd.tudelft.nl/api/things',
@@ -424,7 +420,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return(http_response);
   }
-
 
   // Creates properties in hub that thing uses
   void create_properties_hub() async
@@ -512,7 +507,6 @@ class _MyHomePageState extends State<MyHomePage> {
   {
     thing_prefs.remove("cached_thing");
   }
-
 
   // connects mqtt client to the hub
   void connect_mqtt(String username, String password) async{
@@ -649,6 +643,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
     mqtt_client.logging(on: true);
+  }
+
+  // creates or loads Thing object
+  void create_or_load_thing(String json_str)  async
+  {
+    if(json_str.isEmpty) {
+      await client.create_thing("myphonedevice", client.access_token);
+      await create_properties_hub();
+      await save_thing_to_disk();
+    } else {
+      // var intermed = jsonDecode(json_str);
+      client.thing = Thing.from_json(jsonDecode(json_str));
+      // debugPrint(client.thing.toString());
+    }
   }
 
 }
