@@ -388,6 +388,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       final json_str = await thing_prefs.getString('cached_thing') ?? '';
 
+      // load phone thing or create it
       if(json_str.isEmpty) {
           await client.create_thing("myphonedevice", client.access_token);
           await create_properties_hub();
@@ -398,40 +399,11 @@ class _MyHomePageState extends State<MyHomePage> {
         // debugPrint(client.thing.toString());
       }
 
-      
+     // Set up MQTT broker settings and callbacks
+     set_up_mqtt();
 
-      /// Set logging on if needed, defaults to off
-      mqtt_client.logging(on: true);
-
-      /// If you intend to use a keep alive value in your connect message that is not the default(60s)
-      /// you must set it here
-      mqtt_client.keepAlivePeriod = 20;
-      mqtt_client.secure = true;
-
-      /// Add the unsolicited disconnection callback
-      mqtt_client.onDisconnected = onDisconnected;
-
-      /// Add the successful connection callback
-      mqtt_client.onConnected = onConnected;
-
-      /// Add a subscribed callback, there is also an unsubscribed callback if you need it.
-      /// You can add these before connection or change them dynamically after connection if
-      /// you wish. There is also an onSubscribeFail callback for failed subscriptions, these
-      /// can fail either because you have tried to subscribe to an invalid topic or the broker
-      /// rejects the subscribe request.
-      mqtt_client.onSubscribed = onSubscribed;
-
-
-      /// Set a ping received callback if needed, called whenever a ping response(pong) is received
-      /// from the broker.
-      mqtt_client.pongCallback = pong;
-
-
-
-     mqtt_client.logging(on: true);
-
-     // set and start connection on MQTT port
-      connect_mqtt(client.thing.id, client.thing.token);
+     // start connection on MQTT port
+     connect_mqtt(client.thing.id, client.thing.token);
 
     }
   }
@@ -643,6 +615,40 @@ class _MyHomePageState extends State<MyHomePage> {
 
             })
     );
+  }
+
+  // sets up MQTT connection
+  void set_up_mqtt()
+  {
+    /// Set logging on if needed, defaults to off
+    mqtt_client.logging(on: true);
+
+    /// If you intend to use a keep alive value in your connect message that is not the default(60s)
+    /// you must set it here
+    mqtt_client.keepAlivePeriod = 20;
+    mqtt_client.secure = true;
+
+    /// Add the unsolicited disconnection callback
+    mqtt_client.onDisconnected = onDisconnected;
+
+    /// Add the successful connection callback
+    mqtt_client.onConnected = onConnected;
+
+    /// Add a subscribed callback, there is also an unsubscribed callback if you need it.
+    /// You can add these before connection or change them dynamically after connection if
+    /// you wish. There is also an onSubscribeFail callback for failed subscriptions, these
+    /// can fail either because you have tried to subscribe to an invalid topic or the broker
+    /// rejects the subscribe request.
+    mqtt_client.onSubscribed = onSubscribed;
+
+
+    /// Set a ping received callback if needed, called whenever a ping response(pong) is received
+    /// from the broker.
+    mqtt_client.pongCallback = pong;
+
+
+
+    mqtt_client.logging(on: true);
   }
 
 }
