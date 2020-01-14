@@ -127,13 +127,14 @@ class _MyHomePageState extends State<MyHomePage> {
     // if we're streaming to hub, update the property values in the hub
     if(streaming_to_hub) update_properties_hub();
 
+    // clear location values
     if(_loc_values == null) {
       _loc_values = [ 0, 0, 0, 0, 0];
     }
 
 
 
-    // UI building
+    // Building the UI
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -337,47 +338,12 @@ class _MyHomePageState extends State<MyHomePage> {
   // registering our sensor stream subscriptions
   // called when stateful widget is inserted in widget tree.
   @override
-  void initState()  {
+  void initState()
+  {
     super.initState(); // must be included
     // start subscription once, update values for each event time
 
-    // Gyroscope subscription
-    _stream_subscriptions.add(
-        gyroscopeEvents.listen((GyroscopeEvent event) {
-          setState(() {
-            _gyro_values = <double>[event.x, event.y, event.z];
-          });
-        })
-    );
-
-    // Accelerometer subscription
-    _stream_subscriptions.add(
-        userAccelerometerEvents.listen(
-                (UserAccelerometerEvent event) {
-              setState(() {
-                _user_accel_values = <double>[event.x, event.y, event.z];
-              });
-            })
-    );
-
-    // Location subscription
-    var geolocator = Geolocator();
-    // desired accuracy and the minimum distance change
-    // (in meters) before updates are sent to the application - 1m in our case.
-    var location_options = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 1);
-    _stream_subscriptions.add(
-        geolocator.getPositionStream(location_options).listen(
-            (Position event) {
-              setState(() {
-                _loc_values = <dynamic>[event.latitude,
-                                       event.longitude,
-                                       event.altitude,
-                                       event.speed,
-                                       event.timestamp];
-              });
-
-        })
-    );
+    add_stream_subscriptions();
 
     // camera controller to display the current output from the camera,
     _controller = CameraController(
@@ -402,13 +368,7 @@ class _MyHomePageState extends State<MyHomePage> {
             client.id,
             client.redirect_url.toString(),
             discoveryUrl: "https://dwd.tudelft.nl/.well-known/openid-configuration"
-          //clientSecret: client.secret,
-          //serviceConfiguration: AuthorizationServiceConfiguration(
-          //    client.authorization_endpoint.toString(),
-          //     client.token_endpoint.toString()
-          //),
         )
-
     );
 
     if (result != null)  {
@@ -432,15 +392,13 @@ class _MyHomePageState extends State<MyHomePage> {
           await client.create_thing("myphonedevice", client.access_token);
           await create_properties_hub();
           await save_thing_to_disk();
-
-
       } else {
         var lala = jsonDecode(json_str);
         client.thing = Thing.from_json(jsonDecode(json_str));
         // debugPrint(client.thing.toString());
       }
 
-
+      
 
       /// Set logging on if needed, defaults to off
       mqtt_client.logging(on: true);
@@ -643,6 +601,48 @@ class _MyHomePageState extends State<MyHomePage> {
   /// Pong callback
   void pong() {
     debugPrint('Ping response mqtt_client callback invoked');
+  }
+
+  // adds sensor stream subscriptions
+  void add_stream_subscriptions()
+  {
+    // Gyroscope subscription
+    _stream_subscriptions.add(
+        gyroscopeEvents.listen((GyroscopeEvent event) {
+          setState(() {
+            _gyro_values = <double>[event.x, event.y, event.z];
+          });
+        })
+    );
+
+    // Accelerometer subscription
+    _stream_subscriptions.add(
+        userAccelerometerEvents.listen(
+                (UserAccelerometerEvent event) {
+              setState(() {
+                _user_accel_values = <double>[event.x, event.y, event.z];
+              });
+            })
+    );
+
+    // Location subscription
+    var geolocator = Geolocator();
+    // desired accuracy and the minimum distance change
+    // (in meters) before updates are sent to the application - 1m in our case.
+    var location_options = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 1);
+    _stream_subscriptions.add(
+        geolocator.getPositionStream(location_options).listen(
+                (Position event) {
+              setState(() {
+                _loc_values = <dynamic>[event.latitude,
+                  event.longitude,
+                  event.altitude,
+                  event.speed,
+                  event.timestamp];
+              });
+
+            })
+    );
   }
 
 }
