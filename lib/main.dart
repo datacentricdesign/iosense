@@ -120,6 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // gyro values
     final List<String> gyroscope =
     _gyro_values?.map((double v) => v.toStringAsFixed(3))?.toList();
+
     // accel values
     final List<String> user_accelerometer = _user_accel_values
         ?.map((double v) => v.toStringAsFixed(3))
@@ -153,7 +154,8 @@ class _MyHomePageState extends State<MyHomePage> {
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
         child: Column(
-          // Column is also layout widget. It takes a list of children and
+          // Layout widget
+          /* Column is also layout widget. It takes a list of children and
           // arranges them vertically. By default, it sizes itself to fit its
           // children horizontally, and tries to be as tall as its parent.
           //
@@ -166,12 +168,11 @@ class _MyHomePageState extends State<MyHomePage> {
           // how it positions its children. Here we use mainAxisAlignment to
           // center the children vertically; the main axis here is the vertical
           // axis because Columns are vertical (the cross axis would be
-          // horizontal).
+          // horizontal). */
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
 
             // Accelerometer
-
             CheckboxListTile(
               title: Text("Accelerometer"),
               value: _running_sensors.contains("Accel"),
@@ -194,7 +195,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
 
             // Gyroscope
-
             CheckboxListTile(
               title: Text("Gyroscope"),
               value: _running_sensors.contains("Gyro"),
@@ -216,7 +216,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
 
             // Location tracking
-
             CheckboxListTile(
               title: Text("Location"),
               value: _running_sensors.contains("Location"),
@@ -249,6 +248,7 @@ class _MyHomePageState extends State<MyHomePage> {
                      ),
               visible: _running_sensors.contains("Location"),
             ),
+
             // Camera feed
             CheckboxListTile(
               title: Text("Camera"),
@@ -291,6 +291,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
               visible: _running_sensors.contains("Camera"),
             ),
+
             // Stream to hub button
             Visibility( //if there are any sensors running
               child: RaisedButton(
