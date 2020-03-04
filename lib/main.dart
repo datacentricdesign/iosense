@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'DCD Hub',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(), // dark theme applied
       home: MyHomePage(title: "DCD Hub", camera: active_camera,),
@@ -141,6 +141,13 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
         // in case we have recording, adding a record button
+        bottom: PreferredSize(
+            child: Text(
+                         client?.thing?.id ?? ' ',
+                         textAlign: TextAlign.left,
+                         style: TextStyle(color: Colors.red),
+                       ),
+            preferredSize: null),
         leading:
           Visibility(
             // doing this so I can get largest size possible for icon
