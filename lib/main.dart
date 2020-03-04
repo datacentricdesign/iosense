@@ -18,6 +18,7 @@ import 'dcd.dart' show DCD_client, Thing; // DCD(data centric design) definition
 
 // async main to call our main app state, after retrieving camera
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   // Obtain a list of the available cameras on the device.
   final cameras = await availableCameras();
 
