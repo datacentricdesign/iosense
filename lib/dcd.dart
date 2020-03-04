@@ -158,7 +158,11 @@ class Thing
       final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
       builder.addString(jsonEncode(property.to_json()));
 
-      mqtt_client.publishMessage(topic_url, MqttQos.exactlyOnce, builder.payload);
+
+      if(mqtt_client.connectionStatus.state == MqttConnectionState.connected){
+
+        mqtt_client.publishMessage(topic_url, MqttQos.exactlyOnce, builder.payload);
+      }
 
   }
 
