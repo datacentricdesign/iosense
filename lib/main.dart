@@ -413,11 +413,9 @@ class _MyHomePageState extends State<MyHomePage> {
         // start image stream
 
         _controller.startImageStream((CameraImage image) {
-           // debugPrint("LALA");
             //debugPrint("${_can_send_image}");
+          upload_image_to_hub(image);
         })
-
-
 
       });
 
@@ -436,14 +434,22 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // specific function to upload images to the hub
   // periodically
-  void upload_image_to_hub()
+  void upload_image_to_hub(CameraImage image)
   {
-    if( _can_send_image){
-      debugPrint("Image sent");
-      // set boolean to false (until the periodic timer reactivates it)
-      _can_send_image = false;
+    // can send image is set to true periodically
+    if( _can_send_image && _running_sensors.contains("Camera")){
+      //  lets create image
+
+        // update property
+        client.thing.update_property_http(client.thing.properties[3],
+                                          [image],
+                                          client.thing.token);
+
+        debugPrint("Image sent");
+        // set boolean to false (until the periodic timer reactivates it)
+        _can_send_image = false;
+
     }
-    
   }
 
   // Stream to hub function, connects to it and sends data
@@ -551,20 +557,26 @@ class _MyHomePageState extends State<MyHomePage> {
   {
     if( client.access_token == null) throw Exception("Invalid client access token");
 
-      // Sequential creation of properties
+      // Sequential creation of properties (they are always in the same order)
       await client.thing.create_property("GYROSCOPE", client.access_token);
       await client.thing.create_property("ACCELEROMETER", client.access_token);
       // 5D location property vector
       await client.thing.create_property("FOUR_DIMENSIONS", client.access_token);
+
+      // Picture/ video property
+      await client.thing.create_property("IMAGE", client.access_token);
+
       // after thing and client are created, save them to disk
       await save_thing_to_disk();
   }
 
   // Updates the properties that are selected in the hub
   // current implementation updates all sensors at the rate of the fastest
+  // this function does not include camera, as that requires further processing
+  // that happens in the upload image to hub
   void update_properties_hub()
   {
-    var sensor_list_size = 3;  // holds amount of sensors currently implemented
+    var sensor_list_size = 4;  // holds amount of sensors currently implemented
     // do not do anything until client is established
     if(client.thing == null) return;
 

@@ -169,7 +169,7 @@ class Thing
 }
 
 
-// supported types so far : ACCELEROMETER, GYROSCOPE, 5_DIMENSIONS
+// supported types so far : ACCELEROMETER, GYROSCOPE, 5_DIMENSIONS, IMAGE
 class Property
 {
   String id;
@@ -179,6 +179,8 @@ class Property
   List<dynamic> values; //list of values
 
   Property(this.id,
+
+
            this.name,
            this.description,
            this.type);
