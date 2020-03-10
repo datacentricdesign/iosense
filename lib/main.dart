@@ -285,6 +285,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   return(
                     Flexible(child: Padding(padding: EdgeInsets.symmetric(vertical: 5.0),
                                             child: AspectRatio(
+
                                               aspectRatio: _controller.value.aspectRatio,
                                               child: CameraPreview(_controller)
                                             )
@@ -330,7 +331,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // unregistering our sensor stream subscriptions
   @override
-  void dispose() {
+  void dispose()
+  {
     super.dispose();
 
     // unsubscribe from open streams
@@ -345,7 +347,8 @@ class _MyHomePageState extends State<MyHomePage> {
   // registering our sensor stream subscriptions
   // called when stateful widget is inserted in widget tree.
   @override
-  void initState()  {
+  void initState()
+  {
     super.initState(); // must be included
     // start subscription once, update values for each event time
 
@@ -398,8 +401,18 @@ class _MyHomePageState extends State<MyHomePage> {
     // Next, initialize the controller. This returns a Future.
     _initializeControllerFuture = _controller.initialize();
 
-  }
+    _initializeControllerFuture.then((_) => {
+      // start image stream
 
+      _controller.startImageStream((CameraImage image) {
+          debugPrint("LALA");
+      })
+
+
+
+    });
+
+  }
 
 
   // Stream to hub function, connects to it and sends data
@@ -589,9 +602,9 @@ class _MyHomePageState extends State<MyHomePage> {
     thing_prefs.remove("cached_thing");
   }
 
-
   // connects mqtt client to the hub
-  void connect_mqtt(String username, String password) async{
+  void connect_mqtt(String username, String password) async
+  {
 
     // set connection message
     final MqttConnectMessage connMess = MqttConnectMessage()
@@ -627,12 +640,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   /// The subscribed callback
-  void onSubscribed(String topic) {
+  void onSubscribed(String topic)
+  {
     debugPrint('Subscription confirmed for topic $topic');
   }
 
   /// The unsolicited disconnect callback
-  void onDisconnected() {
+  void onDisconnected()
+  {
     debugPrint(':OnDisconnected mqtt_client callback - mqtt_client disconnection');
     if (mqtt_client.connectionStatus.returnCode == MqttConnectReturnCode.solicited) {
       debugPrint('OnDisconnected callback is solicited, this is correct');
@@ -640,13 +655,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   /// The successful connect callback
-  void onConnected() {
+  void onConnected()
+  {
     debugPrint(
         'OnConnected mqtt_client callback - mqtt_client connection was sucessful');
   }
 
   /// Pong callback
-  void pong() {
+  void pong()
+  {
     debugPrint('Ping response mqtt_client callback invoked');
   }
 
