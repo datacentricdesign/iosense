@@ -75,6 +75,9 @@ class _MyHomePageState extends State<MyHomePage> {
   // stores the Future returned from CameraController.initialize().
   Future<void> _initializeControllerFuture;
 
+  // camera image stream control boolean
+  // for setting image upload rate
+  bool _can_send_image = true;
   // state variables to help with UI rendering and sensor updates
   bool _running_sensors_changed = false, streaming_to_hub = false;
 
@@ -111,6 +114,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // MQTT client broker definition
   MqttClient mqtt_client = MqttClient.withPort('dwd.tudelft.nl','', 8883);
+
+
 
   @override
   Widget build(BuildContext context) {
