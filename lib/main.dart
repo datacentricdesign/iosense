@@ -78,6 +78,9 @@ class _MyHomePageState extends State<MyHomePage> {
   // camera image stream control boolean
   // for setting image upload rate
   bool _can_send_image = true;
+
+  // defines the period of a camera event
+  Duration _camera_period = Duration(seconds: 1);
   // state variables to help with UI rendering and sensor updates
   bool _running_sensors_changed = false, streaming_to_hub = false;
 
@@ -354,71 +357,94 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState()
   {
-    super.initState(); // must be included
-    // start subscription once, update values for each event time
+      super.initState(); // must be included
+      // start subscription once, update values for each event time
 
-    // Gyroscope subscription
-    _stream_subscriptions.add(
-        gyroscopeEvents.listen((GyroscopeEvent event) {
-          setState(() {
-            _gyro_values = <double>[event.x, event.y, event.z];
-          });
+      // Gyroscope subscription
+      _stream_subscriptions.add(
+          gyroscopeEvents.listen((GyroscopeEvent event) {
+            setState(() {
+              _gyro_values = <double>[event.x, event.y, event.z];
+            });
+          })
+      );
+
+      // Accelerometer subscription
+      _stream_subscriptions.add(
+          userAccelerometerEvents.listen(
+                  (UserAccelerometerEvent event) {
+                setState(() {
+                  _user_accel_values = <double>[event.x, event.y, event.z];
+                });
+              })
+      );
+
+      // Location subscription
+      var geolocator = Geolocator();
+      // desired accuracy and the minimum distance change
+      // (in meters) before updates are sent to the application - 1m in our case.
+      var location_options = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 1);
+      _stream_subscriptions.add(
+          geolocator.getPositionStream(location_options).listen(
+              (Position event) {
+                setState(() {
+                  _loc_values = <dynamic>[event.latitude,
+                                         event.longitude,
+                                         event.altitude,
+                                         event.speed,
+                                         event.timestamp];
+                });
+
+          })
+      );
+
+      // camera controller to display the current output from the camera,
+      _controller = CameraController(
+        // Get a specific camera from the list of available cameras.
+        widget.camera,
+        // Define the resolution to use.
+        ResolutionPreset.medium,
+      );
+
+      // Next, initialize the controller. This returns a Future.
+      _initializeControllerFuture = _controller.initialize();
+
+      _initializeControllerFuture.then((_) => {
+        // start image stream
+
+        _controller.startImageStream((CameraImage image) {
+           // debugPrint("LALA");
+            //debugPrint("${_can_send_image}");
         })
-    );
-
-    // Accelerometer subscription
-    _stream_subscriptions.add(
-        userAccelerometerEvents.listen(
-                (UserAccelerometerEvent event) {
-              setState(() {
-                _user_accel_values = <double>[event.x, event.y, event.z];
-              });
-            })
-    );
-
-    // Location subscription
-    var geolocator = Geolocator();
-    // desired accuracy and the minimum distance change
-    // (in meters) before updates are sent to the application - 1m in our case.
-    var location_options = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 1);
-    _stream_subscriptions.add(
-        geolocator.getPositionStream(location_options).listen(
-            (Position event) {
-              setState(() {
-                _loc_values = <dynamic>[event.latitude,
-                                       event.longitude,
-                                       event.altitude,
-                                       event.speed,
-                                       event.timestamp];
-              });
-
-        })
-    );
-
-    // camera controller to display the current output from the camera,
-    _controller = CameraController(
-      // Get a specific camera from the list of available cameras.
-      widget.camera,
-      // Define the resolution to use.
-      ResolutionPreset.medium,
-    );
-
-    // Next, initialize the controller. This returns a Future.
-    _initializeControllerFuture = _controller.initialize();
-
-    _initializeControllerFuture.then((_) => {
-      // start image stream
-
-      _controller.startImageStream((CameraImage image) {
-          debugPrint("LALA");
-      })
 
 
 
-    });
+      });
+
+      // sets up periodic timer which makes the
+      // can_send_image boolean true
+      Future.doWhile( () async {
+          await Future.delayed(_camera_period);
+          _can_send_image = true;
+          //debugPrint("${_can_send_image}");
+          return (true);
+      });
+
+
 
   }
 
+  // specific function to upload images to the hub
+  // periodically
+  void upload_image_to_hub()
+  {
+    if( _can_send_image){
+      debugPrint("Image sent");
+      // set boolean to false (until the periodic timer reactivates it)
+      _can_send_image = false;
+    }
+    
+  }
 
   // Stream to hub function, connects to it and sends data
   Future stream_to_hub() async
