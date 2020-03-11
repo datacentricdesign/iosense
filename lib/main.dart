@@ -437,9 +437,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void upload_image_to_hub(CameraImage image)
   {
     // can send image is set to true periodically
-    if( _can_send_image && _running_sensors.contains("Camera")){
+    if( _can_send_image && streaming_to_hub && _running_sensors.contains("Camera")){
       //  lets create image
 
+        debugPrint("${image.toString()}");
+
+        debugPrint("${image.planes}");
         // update property
         client.thing.update_property_http(client.thing.properties[3],
                                           [image],
