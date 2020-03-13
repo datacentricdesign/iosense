@@ -437,7 +437,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void upload_image_to_hub(CameraImage image)
   {
     // can send image is set to true periodically
-    if( _can_send_image && streaming_to_hub && _running_sensors.contains("Camera")){
+    //&& streaming_to_hub
+    if( _can_send_image  && _running_sensors.contains("Camera")){
       //  lets create image
 
         debugPrint("${image.toString()}");
