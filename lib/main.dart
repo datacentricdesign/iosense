@@ -15,6 +15,8 @@ import 'package:path_provider/path_provider.dart'; // package for path finding
 import 'package:mqtt_client/mqtt_client.dart'; // package for MQTT connection
 
 import 'dcd.dart' show DCD_client, Thing; // DCD(data centric design) definitions
+import 'image_conversion.dart'; // import image conversion functions
+
 
 // async main to call our main app state, after retrieving camera
 Future<void> main() async {
@@ -434,7 +436,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // specific function to upload images to the hub
   // periodically
-  void upload_image_to_hub(CameraImage image)
+  void upload_image_to_hub(CameraImage image) async
   {
     // can send image is set to true periodically
     //&& streaming_to_hub
@@ -443,9 +445,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
         debugPrint("${image.toString()}");
 
+
         debugPrint("${image.planes}");
         // update property
-        client.thing.update_property_http(client.thing.properties[3],
+        await client.thing.update_property_http(client.thing.properties[3],
                                           [image],
                                           client.thing.token);
 
@@ -455,6 +458,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
     }
   }
+
+
 
   // Stream to hub function, connects to it and sends data
   Future stream_to_hub() async
