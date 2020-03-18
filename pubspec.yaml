@@ -33,6 +33,7 @@ dependencies:
   path_provider: ^1.2.0  # plugin for finding commonly used locations on filesystem
   path: ^1.6.2 # cross platform path manipulation
   mqtt_client: ^5.6.1 # mqtt plugin
+  image: ^2.1.4 # dart image handling package
 
 dev_dependencies:
   flutter_test:
