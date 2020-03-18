@@ -1,12 +1,13 @@
 /*
-      Integrated from Alexander Blyth
+      Integrated & slightly adapted
+      from Alexander Blyth @
       https://gist.github.com/Alby-o
  */
 
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
 
-Future<List<int>> convertImagetoPng(CameraImage image) async {
+Future<List<int>> convert_image_to_png(CameraImage image) async {
   try {
     imglib.Image img;
     if (image.format.group == ImageFormatGroup.yuv420) {

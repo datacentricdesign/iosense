@@ -445,11 +445,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
         debugPrint("${image.toString()}");
 
+        //  compute image in png in bytes from
+        //  separate isolate (separate thread)
+        List<int> png = await compute (convert_image_to_png, image);
 
         debugPrint("${image.planes}");
         // update property
         await client.thing.update_property_http(client.thing.properties[3],
-                                          [image],
+                                          png,
                                           client.thing.token);
 
         debugPrint("Image sent");
