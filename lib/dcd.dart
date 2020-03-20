@@ -115,28 +115,40 @@ class Thing
     property.values =  temp; // setting the values of the property that's replaced
 
 
+    if (property.type == "PICTURE"){
+      // we must redefine
+      property.values = [];
+
+
+    }
 
     //var lala = (jsonEncode(property.to_json()));
     // printing post message
     //debugPrint(jsonEncode(property.to_json());
-    var http_response = await http.put(addr_url,
-                                        headers: {'Authorization':
-                                                  'Bearer ${access_token}',
-                                                  'Content-Type' :
-                                                  'application/json',
-                                                  'Response-Type':
-                                                  'application/json'},
-                                        body: jsonEncode(property.to_json()));
-
-    if (http_response.statusCode != 200)
+    if( property.type != "PICTURE")
     {
-      // If that response was not OK, throw an error.
-      throw Exception('''Failed to post property values 
-                      ${property.values} 
-                      to property with id ${property.id}, 
-                      from thing with id: ${this.id} 
-                      to the following link:
-                      ${addr_url}''');
+        var http_response = await http.put(addr_url,
+                                           headers: {'Authorization':
+                                                     'Bearer ${access_token}',
+                                                     'Content-Type':
+                                                     'application/json',
+                                                     'Response-Type':
+                                                     'application/json'},
+                                           body: jsonEncode(property.to_json()),
+        );
+
+        if (http_response.statusCode != 200) {
+          // If that response was not OK, throw an error.
+            throw Exception('''Failed to post property values 
+                            ${property.values} 
+                            to property with id ${property.id}, 
+                            from thing with id: ${this.id} 
+                            to the following link:
+                            ${addr_url}''');
+        }
+    } else {
+      // here we handle the specific media content ( picture/video )
+      // wait until http is redefined
     }
 
     //var json =  await jsonDecode(http_response.body);
