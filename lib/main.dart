@@ -121,7 +121,6 @@ class _MyHomePageState extends State<MyHomePage> {
   MqttClient mqtt_client = MqttClient.withPort('dwd.tudelft.nl','', 8883);
 
 
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -440,29 +439,27 @@ class _MyHomePageState extends State<MyHomePage> {
   {
     // can send image is set to true periodically
     //&& streaming_to_hub
-    if( _can_send_image  && _running_sensors.contains("Camera")){
+    if( _running_sensors.contains("Camera") && streaming_to_hub && _can_send_image ){
       //  lets create image
 
-        debugPrint("${image.toString()}");
+        //debugPrint("${image.toString()}");
 
         //  compute image in png in bytes from
         //  separate isolate (separate thread)
         List<int> png = await compute (convert_image_to_png, image);
 
-        debugPrint("${image.planes}");
+        //debugPrint("${image.planes}");
         // update property
         await client.thing.update_property_http(client.thing.properties[3],
-                                          png,
-                                          client.thing.token);
+                                                png,
+                                                client.thing.token);
 
-        debugPrint("Image sent");
+        debugPrint("Image sending attemp processed");
         // set boolean to false (until the periodic timer reactivates it)
         _can_send_image = false;
 
     }
   }
-
-
 
   // Stream to hub function, connects to it and sends data
   Future stream_to_hub() async
@@ -563,7 +560,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return(http_response);
   }
 
-
   // Creates properties in hub that thing uses
   void create_properties_hub() async
   {
@@ -576,7 +572,7 @@ class _MyHomePageState extends State<MyHomePage> {
       await client.thing.create_property("FOUR_DIMENSIONS", client.access_token);
 
       // Picture/ video property
-      await client.thing.create_property("IMAGE", client.access_token);
+      await client.thing.create_property("PICTURE", client.access_token);
 
       // after thing and client are created, save them to disk
       await save_thing_to_disk();
