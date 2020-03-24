@@ -15,9 +15,12 @@ import 'package:path_provider/path_provider.dart'; // package for path finding
 import 'package:mqtt_client/mqtt_client.dart'; // package for MQTT connection
 
 import 'dcd.dart' show DCD_client, Thing; // DCD(data centric design) definitions
+import 'image_conversion.dart'; // import image conversion functions
+
 
 // async main to call our main app state, after retrieving camera
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   // Obtain a list of the available cameras on the device.
   final cameras = await availableCameras();
 
@@ -40,7 +43,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'DCD Hub',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(), // dark theme applied
       home: MyHomePage(title: "DCD Hub", camera: active_camera,),
@@ -75,6 +78,12 @@ class _MyHomePageState extends State<MyHomePage> {
   // stores the Future returned from CameraController.initialize().
   Future<void> _initializeControllerFuture;
 
+  // camera image stream control boolean
+  // for setting image upload rate
+  bool _can_send_image = true;
+
+  // defines the period of a camera event
+  Duration _camera_period = Duration(seconds: 1);
   // state variables to help with UI rendering and sensor updates
   bool _running_sensors_changed = false, streaming_to_hub = false;
 
@@ -112,6 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // MQTT client broker definition
   MqttClient mqtt_client = MqttClient.withPort('dwd.tudelft.nl','', 8883);
 
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -141,6 +151,13 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
         // in case we have recording, adding a record button
+        bottom: PreferredSize(
+            child: Text(
+                         client?.thing?.id ?? ' ',
+                         textAlign: TextAlign.left,
+                         style: TextStyle(color: Colors.red),
+                       ),
+            preferredSize: null),
         leading:
           Visibility(
             // doing this so I can get largest size possible for icon
@@ -277,6 +294,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   return(
                     Flexible(child: Padding(padding: EdgeInsets.symmetric(vertical: 5.0),
                                             child: AspectRatio(
+
                                               aspectRatio: _controller.value.aspectRatio,
                                               child: CameraPreview(_controller)
                                             )
@@ -323,7 +341,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Unregistering our sensor stream subscriptions
   @override
-  void dispose() {
+  void dispose()
+  {
     super.dispose();
 
     // unsubscribe from open streams
@@ -340,22 +359,74 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState()
   {
+
     super.initState(); // must be included
     // start subscription once, update values for each event time
 
     add_stream_subscriptions();
 
-    // camera controller to display the current output from the camera,
-    _controller = CameraController(
-      // Get a specific camera from the list of available cameras.
-      widget.camera,
-      // Define the resolution to use.
-      ResolutionPreset.medium,
-    );
+      // camera controller to display the current output from the camera,
+      _controller = CameraController(
+        // Get a specific camera from the list of available cameras.
+        widget.camera,
+        // Define the resolution to use.
+        ResolutionPreset.medium,
+      );
 
-    // Next, initialize the controller. This returns a Future.
-    _initializeControllerFuture = _controller.initialize();
+      // Next, initialize the controller. This returns a Future.
+      _initializeControllerFuture = _controller.initialize();
 
+      _initializeControllerFuture.then((_) => {
+        // start image stream
+
+        _controller.startImageStream((CameraImage image) {
+            //debugPrint("${_can_send_image}");
+          upload_image_to_hub(image);
+        })
+
+
+      });
+
+      // sets up periodic timer which makes the
+      // can_send_image boolean true
+      Future.doWhile( () async {
+          await Future.delayed(_camera_period);
+          _can_send_image = true;
+          //debugPrint("${_can_send_image}");
+          return (true);
+      });
+
+
+
+  }
+
+
+  // specific function to upload images to the hub
+  // periodically
+  void upload_image_to_hub(CameraImage image) async
+  {
+    // can send image is set to true periodically
+    //&& streaming_to_hub
+    if( _running_sensors.contains("Camera") && streaming_to_hub && _can_send_image ){
+      //  lets create image
+
+        //debugPrint("${image.toString()}");
+
+        //  compute image in png in bytes from
+        //  separate isolate (separate thread)
+        List<int> png = await compute (convert_image_to_png, image);
+
+        //debugPrint("${image.planes}");
+        // update property
+        await client.thing.update_property_http(client.thing.properties[3],
+                                                png,
+                                                client.thing.token);
+
+        debugPrint("Image sending attemp processed");
+        // set boolean to false (until the periodic timer reactivates it)
+        _can_send_image = false;
+
+    }
   }
 
   // Stream to hub function, connects to it and sends data
@@ -392,11 +463,28 @@ class _MyHomePageState extends State<MyHomePage> {
 
       final json_str = await thing_prefs.getString('cached_thing') ?? '';
 
+
      // load phone thing or create it
      create_or_load_thing(json_str);
 
      // Set up MQTT broker settings and callbacks
      set_up_mqtt();
+
+      if(json_str.isEmpty) {
+          await client.create_thing("myphonedevice", client.access_token);
+          await create_properties_hub();
+          await save_thing_to_disk();
+
+
+      } else {
+        var lala = jsonDecode(json_str);
+        client.thing = Thing.from_json(jsonDecode(json_str));
+        // debugPrint(client.thing.toString());
+      }
+
+     // set up MQTT
+     set_up_mqtt();
+
 
      // start connection on MQTT port
      connect_mqtt(client.thing.id, client.thing.token);
@@ -427,20 +515,26 @@ class _MyHomePageState extends State<MyHomePage> {
   {
     if( client.access_token == null) throw Exception("Invalid client access token");
 
-      // Sequential creation of properties
+      // Sequential creation of properties (they are always in the same order)
       await client.thing.create_property("GYROSCOPE", client.access_token);
       await client.thing.create_property("ACCELEROMETER", client.access_token);
       // 5D location property vector
       await client.thing.create_property("FOUR_DIMENSIONS", client.access_token);
+
+      // Picture/ video property
+      await client.thing.create_property("PICTURE", client.access_token);
+
       // after thing and client are created, save them to disk
       await save_thing_to_disk();
   }
 
   // Updates the properties that are selected in the hub
   // current implementation updates all sensors at the rate of the fastest
+  // this function does not include camera, as that requires further processing
+  // that happens in the upload image to hub
   void update_properties_hub()
   {
-    var sensor_list_size = 3;  // holds amount of sensors currently implemented
+    var sensor_list_size = 4;  // holds amount of sensors currently implemented
     // do not do anything until client is established
     if(client.thing == null) return;
 
@@ -510,7 +604,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // connects mqtt client to the hub
-  void connect_mqtt(String username, String password) async{
+  void connect_mqtt(String username, String password) async
+  {
 
     // set connection message
     final MqttConnectMessage connMess = MqttConnectMessage()
@@ -524,10 +619,9 @@ class _MyHomePageState extends State<MyHomePage> {
     // setting connection message
     mqtt_client.connectionMessage = connMess;
 
-
     // Try connecting to mqtt client
     try {
-      await mqtt_client.connect();
+      await mqtt_client.connect(username, password);
     } on Exception catch (e) {
       debugPrint('EXAMPLE::client exception - $e');
       mqtt_client.disconnect();
@@ -547,12 +641,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   /// The subscribed callback
-  void onSubscribed(String topic) {
+  void onSubscribed(String topic)
+  {
     debugPrint('Subscription confirmed for topic $topic');
   }
 
   /// The unsolicited disconnect callback
-  void onDisconnected() {
+  void onDisconnected()
+  {
     debugPrint(':OnDisconnected mqtt_client callback - mqtt_client disconnection');
     if (mqtt_client.connectionStatus.returnCode == MqttConnectReturnCode.solicited) {
       debugPrint('OnDisconnected callback is solicited, this is correct');
@@ -560,13 +656,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   /// The successful connect callback
-  void onConnected() {
+  void onConnected()
+  {
     debugPrint(
         'OnConnected mqtt_client callback - mqtt_client connection was sucessful');
   }
 
   /// Pong callback
-  void pong() {
+  void pong()
+  {
     debugPrint('Ping response mqtt_client callback invoked');
   }
 
@@ -636,12 +734,9 @@ class _MyHomePageState extends State<MyHomePage> {
     /// rejects the subscribe request.
     mqtt_client.onSubscribed = onSubscribed;
 
-
     /// Set a ping received callback if needed, called whenever a ping response(pong) is received
     /// from the broker.
     mqtt_client.pongCallback = pong;
-
-
 
     mqtt_client.logging(on: true);
   }
