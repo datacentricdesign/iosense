@@ -31,11 +31,7 @@ PODS:
 
 DEPENDENCIES:
   - camera (from `.symlinks/plugins/camera/ios`)
-<<<<<<< HEAD
-  - Flutter (from `.symlinks/flutter/ios-release`)
-=======
   - Flutter (from `Flutter`)
->>>>>>> feature/image_stream
   - flutter_appauth (from `.symlinks/plugins/flutter_appauth/ios`)
   - geolocator (from `.symlinks/plugins/geolocator/ios`)
   - google_api_availability (from `.symlinks/plugins/google_api_availability/ios`)
@@ -55,11 +51,7 @@ EXTERNAL SOURCES:
   camera:
     :path: ".symlinks/plugins/camera/ios"
   Flutter:
-<<<<<<< HEAD
-    :path: ".symlinks/flutter/ios-release"
-=======
     :path: Flutter
->>>>>>> feature/image_stream
   flutter_appauth:
     :path: ".symlinks/plugins/flutter_appauth/ios"
   geolocator:

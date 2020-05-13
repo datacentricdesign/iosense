@@ -1,4 +1,4 @@
-package nl.tudelft.sensor_app;
+package org.datacentricdesign.iosense;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
