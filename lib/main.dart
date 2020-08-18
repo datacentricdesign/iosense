@@ -15,6 +15,8 @@ import 'package:path_provider/path_provider.dart'; // package for path finding
 import 'package:mqtt_client/mqtt_client.dart'; // package for MQTT connection
 
 import 'dcd.dart' show DCD_client, Thing; // DCD(data centric design) definitions
+import 'image_conversion.dart'; // import image conversion functions
+
 
 // async main to call our main app state, after retrieving camera
 Future<void> main() async {
@@ -41,7 +43,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'DCD Hub',
+      title: 'ioSense',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(), // dark theme applied
       home: MyHomePage(title: "DCD Hub", camera: active_camera,),
@@ -72,27 +74,34 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // camera controller, establishes a connection to the device’s camera
   CameraController _controller;
+
   // stores the Future returned from CameraController.initialize().
   Future<void> _initializeControllerFuture;
 
+  // camera image stream control boolean
+  // for setting image upload rate
+  bool _can_send_image = true;
+
+  // defines the period of a camera event
+  Duration _camera_period = Duration(seconds: 1);
   // state variables to help with UI rendering and sensor updates
   bool _running_sensors_changed = false, streaming_to_hub = false;
 
   // set holding currently running sensors
   final Set<String> _running_sensors = Set<String>();
 
-
   // accelerometer forces along x, y and z axes , in m/s^2
   List<double> _user_accel_values; // save accel values without gravity
+
   //  Rate of rotation around x, y, z axes, in rad/s.
   List<double> _gyro_values; // saves rotation values, in radians
 
   // saves location data, 5D:
-  // latitude in degrees normalized to the interval [-90.0,+90.0]
+  /* latitude in degrees normalized to the interval [-90.0,+90.0]
   // longitude in degrees normalized to the interval [-90.0,+90.0]
   // altitude in meters
   // speed at which the device is traveling in m/s over ground
-  // timestamp time at which event was received from device
+  // timestamp time at which event was received from device */
   List<dynamic> _loc_values;
 
 
@@ -112,6 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // MQTT client broker definition
   MqttClient mqtt_client = MqttClient.withPort('dwd.tudelft.nl','', 8883);
 
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -120,6 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // gyro values
     final List<String> gyroscope =
     _gyro_values?.map((double v) => v.toStringAsFixed(3))?.toList();
+
     // accel values
     final List<String> user_accelerometer = _user_accel_values
         ?.map((double v) => v.toStringAsFixed(3))
@@ -128,13 +139,12 @@ class _MyHomePageState extends State<MyHomePage> {
     // if we're streaming to hub, update the property values in the hub
     if(streaming_to_hub) update_properties_hub();
 
+    // clear location values
     if(_loc_values == null) {
       _loc_values = [ 0, 0, 0, 0, 0];
     }
 
-
-
-    // UI building
+    // Building the UI
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -161,7 +171,8 @@ class _MyHomePageState extends State<MyHomePage> {
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
         child: Column(
-          // Column is also layout widget. It takes a list of children and
+          // Layout widget
+          /* Column is also layout widget. It takes a list of children and
           // arranges them vertically. By default, it sizes itself to fit its
           // children horizontally, and tries to be as tall as its parent.
           //
@@ -174,12 +185,11 @@ class _MyHomePageState extends State<MyHomePage> {
           // how it positions its children. Here we use mainAxisAlignment to
           // center the children vertically; the main axis here is the vertical
           // axis because Columns are vertical (the cross axis would be
-          // horizontal).
+          // horizontal). */
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
 
             // Accelerometer
-
             CheckboxListTile(
               title: Text("Accelerometer"),
               value: _running_sensors.contains("Accel"),
@@ -202,7 +212,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
 
             // Gyroscope
-
             CheckboxListTile(
               title: Text("Gyroscope"),
               value: _running_sensors.contains("Gyro"),
@@ -224,7 +233,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
 
             // Location tracking
-
             CheckboxListTile(
               title: Text("Location"),
               value: _running_sensors.contains("Location"),
@@ -257,6 +265,7 @@ class _MyHomePageState extends State<MyHomePage> {
                      ),
               visible: _running_sensors.contains("Location"),
             ),
+
             // Camera feed
             CheckboxListTile(
               title: Text("Camera"),
@@ -285,6 +294,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   return(
                     Flexible(child: Padding(padding: EdgeInsets.symmetric(vertical: 5.0),
                                             child: AspectRatio(
+
                                               aspectRatio: _controller.value.aspectRatio,
                                               child: CameraPreview(_controller)
                                             )
@@ -299,6 +309,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
               visible: _running_sensors.contains("Camera"),
             ),
+
             // Stream to hub button
             Visibility( //if there are any sensors running
               child: RaisedButton(
@@ -328,9 +339,10 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // unregistering our sensor stream subscriptions
+  // Unregistering our sensor stream subscriptions
   @override
-  void dispose() {
+  void dispose()
+  {
     super.dispose();
 
     // unsubscribe from open streams
@@ -342,65 +354,80 @@ class _MyHomePageState extends State<MyHomePage> {
     _controller.dispose();
   }
 
-  // registering our sensor stream subscriptions
+  // Registering our sensor stream subscriptions
   // called when stateful widget is inserted in widget tree.
   @override
-  void initState()  {
+  void initState()
+  {
+
     super.initState(); // must be included
     // start subscription once, update values for each event time
 
-    // Gyroscope subscription
-    _stream_subscriptions.add(
-        gyroscopeEvents.listen((GyroscopeEvent event) {
-          setState(() {
-            _gyro_values = <double>[event.x, event.y, event.z];
-          });
+    add_stream_subscriptions();
+
+      // camera controller to display the current output from the camera,
+      _controller = CameraController(
+        // Get a specific camera from the list of available cameras.
+        widget.camera,
+        // Define the resolution to use.
+        ResolutionPreset.medium,
+      );
+
+      // Next, initialize the controller. This returns a Future.
+      _initializeControllerFuture = _controller.initialize();
+
+      _initializeControllerFuture.then((_) => {
+        // start image stream
+
+        _controller.startImageStream((CameraImage image) {
+            //debugPrint("${_can_send_image}");
+          upload_image_to_hub(image);
         })
-    );
 
-    // Accelerometer subscription
-    _stream_subscriptions.add(
-        userAccelerometerEvents.listen(
-                (UserAccelerometerEvent event) {
-              setState(() {
-                _user_accel_values = <double>[event.x, event.y, event.z];
-              });
-            })
-    );
 
-    // Location subscription
-    var geolocator = Geolocator();
-    // desired accuracy and the minimum distance change
-    // (in meters) before updates are sent to the application - 1m in our case.
-    var location_options = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 1);
-    _stream_subscriptions.add(
-        geolocator.getPositionStream(location_options).listen(
-            (Position event) {
-              setState(() {
-                _loc_values = <dynamic>[event.latitude,
-                                       event.longitude,
-                                       event.altitude,
-                                       event.speed,
-                                       event.timestamp];
-              });
+      });
 
-        })
-    );
+      // sets up periodic timer which makes the
+      // can_send_image boolean true
+      Future.doWhile( () async {
+          await Future.delayed(_camera_period);
+          _can_send_image = true;
+          //debugPrint("${_can_send_image}");
+          return (true);
+      });
 
-    // camera controller to display the current output from the camera,
-    _controller = CameraController(
-      // Get a specific camera from the list of available cameras.
-      widget.camera,
-      // Define the resolution to use.
-      ResolutionPreset.medium,
-    );
 
-    // Next, initialize the controller. This returns a Future.
-    _initializeControllerFuture = _controller.initialize();
 
   }
 
 
+  // specific function to upload images to the hub
+  // periodically
+  void upload_image_to_hub(CameraImage image) async
+  {
+    // can send image is set to true periodically
+    //&& streaming_to_hub
+    if( _running_sensors.contains("Camera") && streaming_to_hub && _can_send_image ){
+      //  lets create image
+
+        //debugPrint("${image.toString()}");
+
+        //  compute image in png in bytes from
+        //  separate isolate (separate thread)
+        List<int> png = await compute (convert_image_to_png, image);
+
+        //debugPrint("${image.planes}");
+        // update property
+        await client.thing.update_property_http(client.thing.properties[3],
+                                                png,
+                                                client.thing.token);
+
+        debugPrint("Image sending attemp processed");
+        // set boolean to false (until the periodic timer reactivates it)
+        _can_send_image = false;
+
+    }
+  }
 
   // Stream to hub function, connects to it and sends data
   Future stream_to_hub() async
@@ -410,13 +437,7 @@ class _MyHomePageState extends State<MyHomePage> {
             client.id,
             client.redirect_url.toString(),
             discoveryUrl: "https://dwd.tudelft.nl/.well-known/openid-configuration"
-          //clientSecret: client.secret,
-          //serviceConfiguration: AuthorizationServiceConfiguration(
-          //    client.authorization_endpoint.toString(),
-          //     client.token_endpoint.toString()
-          //),
         )
-
     );
 
     if (result != null)  {
@@ -424,17 +445,30 @@ class _MyHomePageState extends State<MyHomePage> {
       client.access_token =  result.accessToken;
       streaming_to_hub = true;
 
-      // two following functions depend on each other, so sequential
-      // processing is in order for correct functionality
 
+      /*
+          The two following functions depend on each other, so sequential
+          processing is in order for correct functionality
+      */
       //await remove_thing_from_disk();
+
       // get shared preferences object
       thing_prefs = await SharedPreferences.getInstance();
-      // delete everything in hub
+
+      // test functions,
+      /* delete everything in hub
       //await remove_thing_from_disk();
       //await client.delete_things_hub(["myphonedevice-5911", "myphonedevice-608e"]);
+      */
 
       final json_str = await thing_prefs.getString('cached_thing') ?? '';
+
+
+     // load phone thing or create it
+     create_or_load_thing(json_str);
+
+     // Set up MQTT broker settings and callbacks
+     set_up_mqtt();
 
       if(json_str.isEmpty) {
           await client.create_thing("myphonedevice", client.access_token);
@@ -448,46 +482,21 @@ class _MyHomePageState extends State<MyHomePage> {
         // debugPrint(client.thing.toString());
       }
 
-
-      /// Set logging on if needed, defaults to off
-      mqtt_client.logging(on: true);
-
-      /// If you intend to use a keep alive value in your connect message that is not the default(60s)
-      /// you must set it here
-      mqtt_client.keepAlivePeriod = 20;
-      mqtt_client.secure = true;
-
-      /// Add the unsolicited disconnection callback
-      mqtt_client.onDisconnected = onDisconnected;
-
-      /// Add the successful connection callback
-      mqtt_client.onConnected = onConnected;
-
-      /// Add a subscribed callback, there is also an unsubscribed callback if you need it.
-      /// You can add these before connection or change them dynamically after connection if
-      /// you wish. There is also an onSubscribeFail callback for failed subscriptions, these
-      /// can fail either because you have tried to subscribe to an invalid topic or the broker
-      /// rejects the subscribe request.
-      mqtt_client.onSubscribed = onSubscribed;
+     // set up MQTT
+     set_up_mqtt();
 
 
-      /// Set a ping received callback if needed, called whenever a ping response(pong) is received
-      /// from the broker.
-      mqtt_client.pongCallback = pong;
-
-
-
-     mqtt_client.logging(on: true);
-
+     // start connection on MQTT port
      connect_mqtt(client.thing.id, client.thing.token);
-
     }
   }
 
-  // Test function, sees if hub is interactive
+  // Test function,
+  /* sees if hub is interactive
   // can be used to check response type
   // breakpoints can be used in variables to check response struct
   // and link can be changed to change test hub directory
+  */
   Future<http.Response> interact_hub_http() async
   {
     var http_response = await http.get('https://dwd.tudelft.nl/api/things',
@@ -501,26 +510,31 @@ class _MyHomePageState extends State<MyHomePage> {
     return(http_response);
   }
 
-
   // Creates properties in hub that thing uses
   void create_properties_hub() async
   {
     if( client.access_token == null) throw Exception("Invalid client access token");
 
-      // Sequential creation of properties
+      // Sequential creation of properties (they are always in the same order)
       await client.thing.create_property("GYROSCOPE", client.access_token);
       await client.thing.create_property("ACCELEROMETER", client.access_token);
       // 5D location property vector
       await client.thing.create_property("FOUR_DIMENSIONS", client.access_token);
+
+      // Picture/ video property
+      await client.thing.create_property("PICTURE", client.access_token);
+
       // after thing and client are created, save them to disk
       await save_thing_to_disk();
   }
 
   // Updates the properties that are selected in the hub
   // current implementation updates all sensors at the rate of the fastest
+  // this function does not include camera, as that requires further processing
+  // that happens in the upload image to hub
   void update_properties_hub()
   {
-    var sensor_list_size = 3;  // holds amount of sensors currently implemented
+    var sensor_list_size = 4;  // holds amount of sensors currently implemented
     // do not do anything until client is established
     if(client.thing == null) return;
 
@@ -589,9 +603,9 @@ class _MyHomePageState extends State<MyHomePage> {
     thing_prefs.remove("cached_thing");
   }
 
-
   // connects mqtt client to the hub
-  void connect_mqtt(String username, String password) async{
+  void connect_mqtt(String username, String password) async
+  {
 
     // set connection message
     final MqttConnectMessage connMess = MqttConnectMessage()
@@ -627,12 +641,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   /// The subscribed callback
-  void onSubscribed(String topic) {
+  void onSubscribed(String topic)
+  {
     debugPrint('Subscription confirmed for topic $topic');
   }
 
   /// The unsolicited disconnect callback
-  void onDisconnected() {
+  void onDisconnected()
+  {
     debugPrint(':OnDisconnected mqtt_client callback - mqtt_client disconnection');
     if (mqtt_client.connectionStatus.returnCode == MqttConnectReturnCode.solicited) {
       debugPrint('OnDisconnected callback is solicited, this is correct');
@@ -640,14 +656,103 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   /// The successful connect callback
-  void onConnected() {
+  void onConnected()
+  {
     debugPrint(
         'OnConnected mqtt_client callback - mqtt_client connection was sucessful');
   }
 
   /// Pong callback
-  void pong() {
+  void pong()
+  {
     debugPrint('Ping response mqtt_client callback invoked');
+  }
+
+  // adds sensor stream subscriptions
+  void add_stream_subscriptions()
+  {
+    // Gyroscope subscription
+    _stream_subscriptions.add(
+        gyroscopeEvents.listen((GyroscopeEvent event) {
+          setState(() {
+            _gyro_values = <double>[event.x, event.y, event.z];
+          });
+        })
+    );
+
+    // Accelerometer subscription
+    _stream_subscriptions.add(
+        userAccelerometerEvents.listen(
+                (UserAccelerometerEvent event) {
+              setState(() {
+                _user_accel_values = <double>[event.x, event.y, event.z];
+              });
+            })
+    );
+
+    // Location subscription
+    var geolocator = Geolocator();
+    // desired accuracy and the minimum distance change
+    // (in meters) before updates are sent to the application - 1m in our case.
+    var location_options = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 1);
+    _stream_subscriptions.add(
+        geolocator.getPositionStream(location_options).listen(
+                (Position event) {
+              setState(() {
+                _loc_values = <dynamic>[event.latitude,
+                  event.longitude,
+                  event.altitude,
+                  event.speed,
+                  event.timestamp];
+              });
+
+            })
+    );
+  }
+
+  // sets up MQTT connection
+  void set_up_mqtt()
+  {
+    /// Set logging on if needed, defaults to off
+    mqtt_client.logging(on: true);
+
+    /// If you intend to use a keep alive value in your connect message that is not the default(60s)
+    /// you must set it here
+    mqtt_client.keepAlivePeriod = 20;
+    mqtt_client.secure = true;
+
+    /// Add the unsolicited disconnection callback
+    mqtt_client.onDisconnected = onDisconnected;
+
+    /// Add the successful connection callback
+    mqtt_client.onConnected = onConnected;
+
+    /// Add a subscribed callback, there is also an unsubscribed callback if you need it.
+    /// You can add these before connection or change them dynamically after connection if
+    /// you wish. There is also an onSubscribeFail callback for failed subscriptions, these
+    /// can fail either because you have tried to subscribe to an invalid topic or the broker
+    /// rejects the subscribe request.
+    mqtt_client.onSubscribed = onSubscribed;
+
+    /// Set a ping received callback if needed, called whenever a ping response(pong) is received
+    /// from the broker.
+    mqtt_client.pongCallback = pong;
+
+    mqtt_client.logging(on: true);
+  }
+
+  // creates or loads Thing object
+  void create_or_load_thing(String json_str)  async
+  {
+    if(json_str.isEmpty) {
+      await client.create_thing("myphonedevice", client.access_token);
+      await create_properties_hub();
+      await save_thing_to_disk();
+    } else {
+      // var intermed = jsonDecode(json_str);
+      client.thing = Thing.from_json(jsonDecode(json_str));
+      // debugPrint(client.thing.toString());
+    }
   }
 
 }

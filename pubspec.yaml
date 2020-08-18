@@ -1,4 +1,4 @@
-name: sensor_app
+name: iosense
 description: Sensor plug and play IoT app
 
 # The following defines the version and build number for your application.
@@ -11,7 +11,7 @@ description: Sensor plug and play IoT app
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.1.1+4
+version: 0.2.1+6
 
 environment:
   sdk: ">=2.2.2 <3.0.0"
@@ -33,6 +33,7 @@ dependencies:
   path_provider: ^1.2.0  # plugin for finding commonly used locations on filesystem
   path: ^1.6.2 # cross platform path manipulation
   mqtt_client: ^5.6.1 # mqtt plugin
+  image: ^2.1.4 # dart image handling package
 
 dev_dependencies:
   flutter_test:
