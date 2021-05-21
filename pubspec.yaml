@@ -22,18 +22,18 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^0.1.2
-  sensors: ^0.3.5
-  flutter_appauth: ^0.4.2
-  http: ^0.12.0+2
-  shared_preferences: ^0.5.3+4
+  cupertino_icons: ^1.0.3
+  sensors: ^2.0.0
+  flutter_appauth: ^1.0.0
+  http: ^0.13.3
+  shared_preferences: ^2.0.5
   #firebase_messaging: ^5.0.4
-  geolocator: ^5.1.1+1
-  camera: ^0.5.2+2 # camera package
-  path_provider: ^1.2.0  # plugin for finding commonly used locations on filesystem
+  geolocator: ^7.0.3
+  camera: ^0.8.1 # camera package
+  path_provider: ^2.0.1  # plugin for finding commonly used locations on filesystem
   path: ^1.6.2 # cross platform path manipulation
-  mqtt_client: ^5.6.1 # mqtt plugin
-  image: ^2.1.4 # dart image handling package
+  mqtt_client: ^9.3.1 # mqtt plugin
+  image: ^3.0.2 # dart image handling package
 
 dev_dependencies:
   flutter_test:
