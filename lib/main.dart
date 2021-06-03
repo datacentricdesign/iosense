@@ -10,11 +10,11 @@ import 'package:http/http.dart' as http; //flutter http library
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart'; // package for geolocation
 import 'package:camera/camera.dart'; // package for camera
-import 'package:path/path.dart' show join; // package for path manipulation
+import 'package:path/path.dart' as path; // package for path manipulation
 import 'package:path_provider/path_provider.dart'; // package for path finding
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-
+import 'package:flutter/services.dart' show rootBundle;
 import 'dcd.dart'
     show DCD_client, Thing; // DCD(data centric design) definitions
 import 'image_conversion.dart'; // import image conversion functions
@@ -120,7 +120,8 @@ class _MyHomePageState extends State<MyHomePage> {
   SharedPreferences thing_prefs;
 
   // MQTT client broker definition
-  MqttServerClient mqtt_client = MqttServerClient('dwd.tudelft.nl', 'IOsense');
+  MqttServerClient mqtt_client =
+      MqttServerClient('dwd.tudelft.nl', 'clients:iosense');
 
   @override
   Widget build(BuildContext context) {
@@ -408,7 +409,7 @@ class _MyHomePageState extends State<MyHomePage> {
       //debugPrint("${image.planes}");
       // update property
       await client.thing.update_property_http(
-          client.thing.properties[3], png, client.thing.token);
+          client.thing.properties[3], png, client.access_token);
 
       debugPrint("Image sending attemp processed");
       // set boolean to false (until the periodic timer reactivates it)
@@ -453,10 +454,10 @@ class _MyHomePageState extends State<MyHomePage> {
       //await client.delete_things_hub(["myphonedevice-5911", "myphonedevice-608e"]);
       */
 
-        final json_str = await thing_prefs.getString('cached_thing') ?? '';
-
+        //final json_str = await thing_prefs.getString('cached_thing') ?? '';
+        final json_str = '';
         // load phone thing or create it
-        create_or_load_thing(json_str);
+        //create_or_load_thing(json_str);
 
         // Set up MQTT broker settings and callbacks
         set_up_mqtt();
@@ -472,10 +473,10 @@ class _MyHomePageState extends State<MyHomePage> {
         }
 
         // set up MQTT
-        set_up_mqtt();
+        // set_up_mqtt();
 
         // start connection on MQTT port
-        connect_mqtt(client.thing.id, client.thing.token);
+        connect_mqtt(client.thing.id, client.access_token);
       }
     } on Exception catch (e, s) {
       debugPrint('login error: $e - stack: $s');
@@ -491,7 +492,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<http.Response> interact_hub_http() async {
     var http_response = await http.get(
         Uri.parse('https://dwd.tudelft.nl/api/things'),
-        headers: {'Authorization': 'Bearer ${client.access_token}'});
+        headers: {'Authorization': 'bearer ${client.access_token}'});
 
     var aba = jsonDecode(http_response.body);
     var thing = aba["things"];
@@ -509,10 +510,10 @@ class _MyHomePageState extends State<MyHomePage> {
     await client.thing.create_property("GYROSCOPE", client.access_token);
     await client.thing.create_property("ACCELEROMETER", client.access_token);
     // 5D location property vector
-    await client.thing.create_property("FOUR_DIMENSIONS", client.access_token);
+    //await client.thing.create_property("FOUR_DIMENSIONS", client.access_token);
 
     // Picture/ video property
-    await client.thing.create_property("PICTURE", client.access_token);
+    //await client.thing.create_property("PICTURE", client.access_token);
 
     // after thing and client are created, save them to disk
     await save_thing_to_disk();
@@ -535,7 +536,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                          client.access_token);*/
 
       client.thing.update_property_mqtt(client.thing.properties[0],
-          _gyro_values, client.thing.token, mqtt_client);
+          _gyro_values, client.access_token, mqtt_client);
     }
 
     if (_running_sensors.contains(("Accel")) &&
@@ -547,7 +548,7 @@ class _MyHomePageState extends State<MyHomePage> {
 */
 
       client.thing.update_property_mqtt(client.thing.properties[1],
-          _user_accel_values, client.thing.token, mqtt_client);
+          _user_accel_values, client.access_token, mqtt_client);
     }
 
     if (_running_sensors.contains(("Location")) &&
@@ -561,10 +562,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                          client.access_token);*/
 
       client.thing.update_property_mqtt(client.thing.properties[2], _loc_values,
-          client.thing.token, mqtt_client);
+          client.access_token, mqtt_client);
     }
 
-    interact_hub_http();
+    // interact_hub_http();
   }
 
   // saves connected client thing ids to disk using shared preferences
@@ -584,9 +585,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void connect_mqtt(String username, String password) async {
     // set connection message
     final MqttConnectMessage connMess = MqttConnectMessage()
-        .withClientIdentifier(
-            "clients:dcd-app-mobile" + client.thing.id.substring(24))
-        .keepAliveFor(60) // Must agree with the keep alive set above or not set
+        .withClientIdentifier("clients:iosense" + client.thing.id.substring(4))
         .withWillQos(MqttQos.atLeastOnce)
         .startClean()
         .authenticateAs(username, password);
@@ -678,7 +677,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // sets up MQTT connection
-  void set_up_mqtt() {
+  void set_up_mqtt() async {
     /// Set logging on if needed, defaults to off
     mqtt_client.logging(on: true);
 
@@ -688,11 +687,20 @@ class _MyHomePageState extends State<MyHomePage> {
     mqtt_client.secure = true;
     mqtt_client.port = 8883;
 
+    /// Security context
+    final sslCert1 = await rootBundle.load('assets/DigicertCA.crt');
+    final context = SecurityContext.defaultContext;
+    context.setTrustedCertificatesBytes(sslCert1.buffer.asInt8List());
+    mqtt_client.securityContext = context;
+
     /// Add the unsolicited disconnection callback
     mqtt_client.onDisconnected = onDisconnected;
 
     /// Add the successful connection callback
     mqtt_client.onConnected = onConnected;
+
+    /// Set an on bad certificate callback, note that the parameter is needed.
+    mqtt_client.onBadCertificate = (dynamic a) => true;
 
     /// Add a subscribed callback, there is also an unsubscribed callback if you need it.
     /// You can add these before connection or change them dynamically after connection if

@@ -33,21 +33,22 @@ class Thing {
         // taking a json input, for each object in properties
         // will place a Property into the list,  created with said object
         properties = [
-          for (var property_json in json['properties'])
-            Property.from_json(property_json)
+          if (json['properties'] != null)
+            {
+              for (var property_json in json['properties'])
+                Property.from_json(property_json)
+            }
         ],
-        readAt = json['readAt'],
-        token = json['token'] ?? json['keys']['jwt'];
+        readAt = json['readAt'];
 
   // arrow notation =>x (replaces  with {return x}
-  Map<String, dynamic> to_json([bool hide_token = false]) => {
+  Map<String, dynamic> to_json() => {
         if (id != null) 'id': id,
         if (name != null) 'name': name,
         if (description != null) 'description': description,
         if (type != null) 'type': type,
         if (properties != null) 'properties': properties,
         if (readAt != null) 'readAt': readAt,
-        if (token != null && !hide_token) 'token': token,
       };
 
   // Given an EXISTING thing, and an access token,
@@ -55,12 +56,13 @@ class Thing {
   // and returns created property
   Future<Property> create_property(
       String prop_type, String access_token) async {
-    if (this.id == null) throw Exception("Invalid thing id");
+    if (id == null) throw Exception("Invalid thing id");
     // basic address
-    var addr_url =
-        Uri.parse('https://dwd.tudelft.nl/api/things/${this.id}/properties');
+    var addr_url = Uri.parse(
+        'https://dwd.tudelft.nl:443/bucket/api/things/${id}/properties');
 
-    Property blank = Property(null, prop_type.toLowerCase(), null, prop_type);
+    Property blank = Property(
+        null, prop_type.toLowerCase(), 'A dummy ${prop_type}', prop_type);
     //blank property,except type and name
     // if it is location data
     if (prop_type == "FOUR_DIMENSIONS") {
@@ -75,7 +77,7 @@ class Thing {
 
     var http_response = await http.post(addr_url,
         headers: {
-          'Authorization': 'Bearer ${access_token}',
+          'Authorization': 'bearer ${access_token}',
           'Content-Type': 'application/json',
           'Response-Type': 'application/json'
         },
@@ -88,7 +90,7 @@ class Thing {
 
     var json = jsonDecode(http_response.body);
     // adding a new property to our thing
-    this.properties.add(Property.from_json(json['property']));
+    this.properties.add(Property.from_json(json));
 
     return (Property.from_json(json));
   }
@@ -162,7 +164,7 @@ class Thing {
     property.values =
         temp; // setting the values of the property that's replaced
 
-    final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
+    final builder = MqttClientPayloadBuilder();
     builder.addString(jsonEncode(property.to_json()));
 
     if (mqtt_client.connectionStatus.state == MqttConnectionState.connected) {
@@ -188,7 +190,7 @@ class Property {
       : id = json['id'],
         name = json['name'],
         description = json['description'],
-        type = json['type'],
+        type = json['typeId'],
         values = json['values'];
 
   // overriding function for jsonEncode Call
@@ -200,7 +202,7 @@ class Property {
         if (id != null) 'id': id,
         if (name != null) 'name': name,
         if (description != null) 'description': description,
-        if (type != null) 'type': type,
+        if (type != null) 'typeId': type,
         if (values != null) 'values': [values],
       };
 }
@@ -218,7 +220,7 @@ class DCD_client {
   // client. The redirection will include the authorization code in the
   // query parameters.
   final redirect_url = Uri.parse('nl.tudelft.ide.iosense:/oauth2redirect');
-  final basic_url = 'https://dwd.tudelft.nl/api';
+  final basic_url = 'https://dwd.tudelft.nl:443/bucket/api';
 
   String access_token; // holds access token for our hub connection
   Thing thing; // holds thing for our client to update
@@ -228,13 +230,13 @@ class DCD_client {
 
   // creates thing in hub and puts it into client thing member
   Future<Thing> create_thing(String thing_name, String access_token) async {
-    var addr_url = Uri.parse(basic_url + '/things?jwt=true');
+    var addr_url = Uri.parse(basic_url + '/things');
     // creating empty thing
     Thing blank = Thing(null, thing_name, null, "test", null, null);
     var http_response = await http.post(
       addr_url,
       headers: {
-        'Authorization': 'Bearer ${access_token}',
+        'Authorization': 'bearer ${access_token}',
         'Content-Type': 'application/json',
         'Response-Type': 'application/json'
       },
@@ -247,7 +249,7 @@ class DCD_client {
     }
 
     var json = jsonDecode(http_response.body);
-    this.thing = Thing.from_json(json['thing']);
+    this.thing = Thing.from_json(json);
     return (this.thing);
   }
 
