@@ -2,6 +2,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:mqtt_client/mqtt_client.dart'; // package for MQTT connection
+import 'dart:developer' as developer;
+
+final basicURL = 'https://dwd.tudelft.nl:443/bucket/api';
 
 class Thing {
   String id;
@@ -25,6 +28,7 @@ class Thing {
 
   // named constructor from json object
   // also using an initializer list
+
   Thing.from_json(Map<String, dynamic> json)
       : id = json['id'],
         name = json['name'],
@@ -58,8 +62,7 @@ class Thing {
       String prop_type, String access_token) async {
     if (id == null) throw Exception("Invalid thing id");
     // basic address
-    var addr_url = Uri.parse(
-        'https://dwd.tudelft.nl:443/bucket/api/things/${id}/properties');
+    var addr_url = Uri.parse('${basicURL}/things/${id}/properties');
 
     Property blank = Property(
         null, prop_type.toLowerCase(), 'A dummy ${prop_type}', prop_type);
@@ -99,7 +102,7 @@ class Thing {
   Future<void> update_property_http(
       Property property, List<dynamic> values, String access_token) async {
     var addr_url = Uri.parse(
-        'https://dwd.tudelft.nl/api/things/${this.id}/properties/${property.id}');
+        'https://dwd.tudelft.nl:443/bucket/api/things/${this.id}/properties/${property.id}');
 
     // struct of data to send to server value :[[ tmstamp, ... ]]
     var temp = <Object>[];
@@ -124,7 +127,7 @@ class Thing {
       var http_response = await http.put(
         addr_url,
         headers: {
-          'Authorization': 'Bearer ${access_token}',
+          'Authorization': 'bearer ${access_token}',
           'Content-Type': 'application/json',
           'Response-Type': 'application/json'
         },
@@ -144,10 +147,13 @@ class Thing {
       // here we handle the specific media content ( picture/video )
       // wait until http is redefined
     }
-
+    return (true);
     //var json =  await jsonDecode(http_response.body);
     //return(Property.from_json(json));
   }
+
+  // TODO:
+  // - debug and fix authorization of MQTT on the bucket side
 
   void update_property_mqtt(Property property, List<dynamic> values,
       String thing_token, MqttClient mqtt_client) {
@@ -220,17 +226,52 @@ class DCD_client {
   // client. The redirection will include the authorization code in the
   // query parameters.
   final redirect_url = Uri.parse('nl.tudelft.ide.iosense:/oauth2redirect');
-  final basic_url = 'https://dwd.tudelft.nl:443/bucket/api';
 
   String access_token; // holds access token for our hub connection
   Thing thing; // holds thing for our client to update
 
+  bool authorized = false;
+
   // default constructor
   DCD_client();
 
+  Future<Thing> FindOrCreateThing(
+      String thing_name, String access_token) async {
+    var addr_url = Uri.parse(basicURL + '/things');
+    // creating empty thing
+    var http_response = await http.get(addr_url, headers: {
+      'Authorization': 'bearer ${access_token}',
+      'Content-Type': 'application/json',
+      'Response-Type': 'application/json'
+    });
+
+    // if (http_response.statusCode != 201 ||
+    //     http_response.statusCode != 200 ||
+    //     http_response.statusCode != 202) {
+    //   // If that response was not OK, throw an error.
+    //   throw Exception('Failed to post to thing');
+    // }
+
+    Iterable l = json.decode(http_response.body);
+    List<Thing> things =
+        List<Thing>.from(l.map((model) => Thing.from_json(model)));
+    //check the JSON file for a thing with the same name
+    things.forEach((element) {
+      if (element.name == thing_name) {
+        this.thing = element;
+        return element;
+      }
+    });
+
+    if (this.thing == null) {
+      // if we don't find the thing, create it
+      return await create_thing(thing_name, access_token);
+    }
+  }
+
   // creates thing in hub and puts it into client thing member
   Future<Thing> create_thing(String thing_name, String access_token) async {
-    var addr_url = Uri.parse(basic_url + '/things');
+    var addr_url = Uri.parse(basicURL + '/things');
     // creating empty thing
     Thing blank = Thing(null, thing_name, null, "test", null, null);
     var http_response = await http.post(
@@ -258,7 +299,7 @@ class DCD_client {
     ids_to_delete.forEach((prop_id_to_delete) async {
       var http_response = await http.delete(
           Uri.parse('https://dwd.tudelft.nl/api/things/${prop_id_to_delete}'),
-          headers: {'Authorization': 'Bearer ${this.access_token}'});
+          headers: {'Authorization': 'bearer ${this.access_token}'});
     });
   }
 }

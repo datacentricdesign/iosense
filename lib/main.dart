@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(), // dark theme applied
       home: MyHomePage(
-        title: "DCD Hub",
+        title: 'DCD Hub',
         camera: active_camera,
       ),
     );
@@ -85,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _can_send_image = true;
 
   // defines the period of a camera event
-  Duration _camera_period = Duration(seconds: 1);
+  final Duration _camera_period = Duration(seconds: 1);
   // state variables to help with UI rendering and sensor updates
   bool _running_sensors_changed = false, streaming_to_hub = false;
 
@@ -107,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<dynamic> _loc_values;
 
   // stores list of subscriptions to sensor event streams (async data sources)
-  List<StreamSubscription<dynamic>> _stream_subscriptions =
+  final List<StreamSubscription<dynamic>> _stream_subscriptions =
       <StreamSubscription<dynamic>>[];
 
   // creating our client object
@@ -129,20 +129,18 @@ class _MyHomePageState extends State<MyHomePage> {
     // here we will update our values, before updating the UI
     // note that conditional member access operator is used (?.)
     // gyro values
-    final List<String> gyroscope =
+    final gyroscope =
         _gyro_values?.map((double v) => v.toStringAsFixed(3))?.toList();
 
     // accel values
-    final List<String> user_accelerometer =
+    final user_accelerometer =
         _user_accel_values?.map((double v) => v.toStringAsFixed(3))?.toList();
 
     // if we're streaming to hub, update the property values in the hub
     if (streaming_to_hub) update_properties_hub();
 
     // clear location values
-    if (_loc_values == null) {
-      _loc_values = [0, 0, 0, 0, 0];
-    }
+    _loc_values ??= [0, 0, 0, 0, 0];
 
     // Building the UI
     return Scaffold(
@@ -189,8 +187,8 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             // Accelerometer
             CheckboxListTile(
-              title: Text("Accelerometer"),
-              value: _running_sensors.contains("Accel"),
+              title: Text('Accelerometer'),
+              value: _running_sensors.contains('Accel'),
               onChanged: (bool new_value) {
                 _running_sensors_changed = true; //set to stream has changed
                 streaming_to_hub = false; // stop streaming
@@ -198,22 +196,22 @@ class _MyHomePageState extends State<MyHomePage> {
                 // updating our state since running sensors changes UI
                 setState(() {
                   new_value
-                      ? _running_sensors.add("Accel")
-                      : _running_sensors.remove("Accel");
+                      ? _running_sensors.add('Accel')
+                      : _running_sensors.remove('Accel');
                 });
               },
             ),
             Visibility(
+              visible: _running_sensors.contains('Accel'),
               // widget does not take any visible space when invisible
-              child: Text("[x,y,z] (m/s^2) = $user_accelerometer"),
+              child: Text('[x,y,z] (m/s^2) = $user_accelerometer'),
               //textAlign: TextAlign.start),
-              visible: _running_sensors.contains("Accel"),
             ),
 
             // Gyroscope
             CheckboxListTile(
-              title: Text("Gyroscope"),
-              value: _running_sensors.contains("Gyro"),
+              title: Text('Gyroscope'),
+              value: _running_sensors.contains('Gyro'),
               onChanged: (bool new_value) {
                 _running_sensors_changed = true; //set to stream has changed
                 streaming_to_hub = false;
@@ -221,22 +219,22 @@ class _MyHomePageState extends State<MyHomePage> {
                 // updating our state since running sensors changes UI
                 setState(() {
                   new_value
-                      ? _running_sensors.add("Gyro")
-                      : _running_sensors.remove("Gyro");
+                      ? _running_sensors.add('Gyro')
+                      : _running_sensors.remove('Gyro');
                 });
               },
             ),
             Visibility(
+              visible: _running_sensors.contains('Gyro'),
               // widget does not take any visible space when invisible
-              child: Text("[x,y,z] (rad/s) = $gyroscope"),
+              child: Text('[x,y,z] (rad/s) = $gyroscope'),
               //textAlign: TextAlign.start),
-              visible: _running_sensors.contains("Gyro"),
             ),
 
             // Location tracking
             CheckboxListTile(
-              title: Text("Location"),
-              value: _running_sensors.contains("Location"),
+              title: Text('Location'),
+              value: _running_sensors.contains('Location'),
               onChanged: (bool new_value) {
                 _running_sensors_changed = true; //set to stream has changed
                 streaming_to_hub = false; // stop streaming
@@ -244,13 +242,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 // updating our state since running sensors changes UI
                 setState(() {
                   new_value
-                      ? _running_sensors.add("Location")
-                      : _running_sensors.remove("Location");
+                      ? _running_sensors.add('Location')
+                      : _running_sensors.remove('Location');
                 });
               },
             ),
             Visibility(
               // widget does not take any visible space when invisible
+              visible: _running_sensors.contains('Location'),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
@@ -263,17 +262,16 @@ class _MyHomePageState extends State<MyHomePage> {
                         "Longitude ([-90.0,+90.0]°) = ${_loc_values[1] ?? " "}"),
                     Text("Altitude (m) = ${_loc_values[2] ?? " "}"),
                     Text("Speed over ground (m/s) = ${_loc_values[3] ?? " "}"),
-                    Text("Timestamp (GMT) = ${_loc_values[4]?.toString()}"),
+                    Text('Timestamp (GMT) = ${_loc_values[4]?.toString()}'),
                   ],
                 ),
               ),
-              visible: _running_sensors.contains("Location"),
             ),
 
             // Camera feed
             CheckboxListTile(
-              title: Text("Camera"),
-              value: _running_sensors.contains("Camera"),
+              title: Text('Camera'),
+              value: _running_sensors.contains('Camera'),
               onChanged: (bool new_value) {
                 _running_sensors_changed = true; //set to stream has changed
                 streaming_to_hub = false; // stop streaming
@@ -281,8 +279,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 // updating our state since running sensors changes UI
                 setState(() {
                   new_value
-                      ? _running_sensors.add("Camera")
-                      : _running_sensors.remove("Camera");
+                      ? _running_sensors.add('Camera')
+                      : _running_sensors.remove('Camera');
                 });
               },
             ),
@@ -291,6 +289,7 @@ class _MyHomePageState extends State<MyHomePage> {
               // Wait until the controller is initialized before displaying the
               // camera preview. Use a FutureBuilder to display a loading spinner
               // until the controller has finished initializing.
+              visible: _running_sensors.contains('Camera'),
               child: FutureBuilder<void>(
                 future: _initializeControllerFuture,
                 builder: (context, snapshot) {
@@ -308,12 +307,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                 },
               ),
-              visible: _running_sensors.contains("Camera"),
             ),
 
             // Stream to hub button
             Visibility(
               //if there are any sensors running
+              visible: _running_sensors.isNotEmpty && _running_sensors_changed,
               child: RaisedButton(
                 onPressed: () async {
                   // do not go forwards until streaming has happened
@@ -329,7 +328,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: Text('Stream data to Hub'),
               ),
-              visible: _running_sensors.isNotEmpty && _running_sensors_changed,
             ),
           ],
         ),
@@ -343,7 +341,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
 
     // unsubscribe from open streams
-    for (StreamSubscription<dynamic> subscription in _stream_subscriptions) {
+    for (var subscription in _stream_subscriptions) {
       subscription.cancel();
     }
 
@@ -385,7 +383,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Future.doWhile(() async {
       await Future.delayed(_camera_period);
       _can_send_image = true;
-      //debugPrint("${_can_send_image}");
+      update_properties_hub();
       return (true);
     });
   }
@@ -395,23 +393,21 @@ class _MyHomePageState extends State<MyHomePage> {
   void upload_image_to_hub(CameraImage image) async {
     // can send image is set to true periodically
     //&& streaming_to_hub
-    if (_running_sensors.contains("Camera") &&
+    if (_running_sensors.contains('Camera') &&
         streaming_to_hub &&
         _can_send_image) {
       //  lets create image
 
-      //debugPrint("${image.toString()}");
-
       //  compute image in png in bytes from
       //  separate isolate (separate thread)
-      List<int> png = await compute(convert_image_to_png, image);
+      var png = await compute(convert_image_to_png, image);
 
       //debugPrint("${image.planes}");
       // update property
       await client.thing.update_property_http(
           client.thing.properties[3], png, client.access_token);
 
-      debugPrint("Image sending attemp processed");
+      debugPrint('Image sending attemp processed');
       // set boolean to false (until the periodic timer reactivates it)
       _can_send_image = false;
     }
@@ -424,7 +420,7 @@ class _MyHomePageState extends State<MyHomePage> {
           AuthorizationTokenRequest(
               client.id, client.redirect_url.toString(),
               discoveryUrl:
-                  "https://dwd.tudelft.nl/.well-known/openid-configuration",
+                  'https://dwd.tudelft.nl/.well-known/openid-configuration',
               scopes: [
             'openid',
             'offline',
@@ -435,88 +431,42 @@ class _MyHomePageState extends State<MyHomePage> {
           ]));
 
       if (result != null) {
+        client.authorized = true;
         // save the code verifier as it must be used when exchanging the token
         client.access_token = result.accessToken;
         streaming_to_hub = true;
 
-        /*
-          The two following functions depend on each other, so sequential
-          processing is in order for correct functionality
-      */
-        //await remove_thing_from_disk();
-
-        // get shared preferences object
-        thing_prefs = await SharedPreferences.getInstance();
-
-        // test functions,
-        /* delete everything in hub
-      //await remove_thing_from_disk();
-      //await client.delete_things_hub(["myphonedevice-5911", "myphonedevice-608e"]);
-      */
-
-        //final json_str = await thing_prefs.getString('cached_thing') ?? '';
-        final json_str = '';
-        // load phone thing or create it
-        //create_or_load_thing(json_str);
-
-        // Set up MQTT broker settings and callbacks
-        set_up_mqtt();
-
-        if (json_str.isEmpty) {
-          await client.create_thing("myphonedevice", client.access_token);
-          await create_properties_hub();
-          await save_thing_to_disk();
-        } else {
-          var lala = jsonDecode(json_str);
-          client.thing = Thing.from_json(jsonDecode(json_str));
-          // debugPrint(client.thing.toString());
-        }
+        await client.FindOrCreateThing('myphonedevice', client.access_token);
+        await create_properties_hub();
+        // await save_thing_to_disk();
 
         // set up MQTT
         // set_up_mqtt();
 
         // start connection on MQTT port
-        connect_mqtt(client.thing.id, client.access_token);
+        //connect_mqtt(client.thing.id, client.access_token);
+      } else {
+        debugPrint('authoirzation went wrong!');
       }
     } on Exception catch (e, s) {
       debugPrint('login error: $e - stack: $s');
     }
   }
 
-  // Test function,
-  /* sees if hub is interactive
-  // can be used to check response type
-  // breakpoints can be used in variables to check response struct
-  // and link can be changed to change test hub directory
-  */
-  Future<http.Response> interact_hub_http() async {
-    var http_response = await http.get(
-        Uri.parse('https://dwd.tudelft.nl/api/things'),
-        headers: {'Authorization': 'bearer ${client.access_token}'});
-
-    var aba = jsonDecode(http_response.body);
-    var thing = aba["things"];
-    var lala = thing[0]["id"];
-
-    return (http_response);
-  }
-
   // Creates properties in hub that thing uses
   void create_properties_hub() async {
-    if (client.access_token == null)
-      throw Exception("Invalid client access token");
+    if (client.access_token == null) {
+      throw Exception('Invalid client access token');
+    }
 
     // Sequential creation of properties (they are always in the same order)
-    await client.thing.create_property("GYROSCOPE", client.access_token);
-    await client.thing.create_property("ACCELEROMETER", client.access_token);
+    await client.thing.create_property('GYROSCOPE', client.access_token);
+    await client.thing.create_property('ACCELEROMETER', client.access_token);
     // 5D location property vector
     //await client.thing.create_property("FOUR_DIMENSIONS", client.access_token);
 
     // Picture/ video property
     //await client.thing.create_property("PICTURE", client.access_token);
-
-    // after thing and client are created, save them to disk
-    await save_thing_to_disk();
   }
 
   // Updates the properties that are selected in the hub
@@ -524,119 +474,46 @@ class _MyHomePageState extends State<MyHomePage> {
   // this function does not include camera, as that requires further processing
   // that happens in the upload image to hub
   void update_properties_hub() {
-    var sensor_list_size = 4; // holds amount of sensors currently implemented
+    // TODO: switch from static sensor size list to something more dynamic
+    var sensor_list_size = 2; // holds amount of sensors currently implemented
     // do not do anything until client is established
     if (client.thing == null) return;
 
     // do not do anything unless it is a running sensor and is established in hub
-    if (_running_sensors.contains(("Gyro")) &&
+    if (_running_sensors.contains(('Gyro')) &&
         client.thing.properties.length == sensor_list_size) {
 /*            client.thing.update_property_http(client.thing.properties[0],
                                          _gyro_values,
                                          client.access_token);*/
 
-      client.thing.update_property_mqtt(client.thing.properties[0],
-          _gyro_values, client.access_token, mqtt_client);
+      //   client.thing.update_property_mqtt(client.thing.properties[0],
+      //       _gyro_values, client.access_token, mqtt_client);
+      // }
+      client.thing.update_property_http(
+          client.thing.properties[0], _gyro_values, client.access_token);
     }
-
-    if (_running_sensors.contains(("Accel")) &&
+    if (_running_sensors.contains(('Accel')) &&
         client.thing.properties.length == sensor_list_size) {
-/*
-             client.thing.update_property_http(client.thing.properties[1],
-                                          _user_accel_values,
-                                          client.access_token);
-*/
-
-      client.thing.update_property_mqtt(client.thing.properties[1],
-          _user_accel_values, client.access_token, mqtt_client);
+      //   client.thing.update_property_mqtt(client.thing.properties[1],
+      //       _user_accel_values, client.access_token, mqtt_client);
+      // }
+      client.thing.update_property_http(
+          client.thing.properties[1], _user_accel_values, client.access_token);
     }
 
-    if (_running_sensors.contains(("Location")) &&
+    if (_running_sensors.contains(('Location')) &&
         client.thing.properties.length == sensor_list_size) {
       if (listEquals<dynamic>(_loc_values, [0, 0, 0, 0, 0])) {
         return;
       }
+      client.thing.update_property_http(
+          client.thing.properties[2], _loc_values, client.access_token);
 
-/*            client.thing.update_property_http(client.thing.properties[2],
-                                         _loc_values,
-                                         client.access_token);*/
-
-      client.thing.update_property_mqtt(client.thing.properties[2], _loc_values,
-          client.access_token, mqtt_client);
+      // client.thing.update_property_mqtt(client.thing.properties[2], _loc_values,
+      //     client.access_token, mqtt_client);
     }
 
     // interact_hub_http();
-  }
-
-  // saves connected client thing ids to disk using shared preferences
-  void save_thing_to_disk() {
-    // Get Json string encoding thing
-    var json_str = jsonEncode(client.thing.to_json());
-    thing_prefs.setString("cached_thing", json_str);
-    //debugPrint(json_str);
-  }
-
-  // remove shared preferences for file
-  void remove_thing_from_disk() {
-    thing_prefs.remove("cached_thing");
-  }
-
-  // connects mqtt client to the hub
-  void connect_mqtt(String username, String password) async {
-    // set connection message
-    final MqttConnectMessage connMess = MqttConnectMessage()
-        .withClientIdentifier("clients:iosense" + client.thing.id.substring(4))
-        .withWillQos(MqttQos.atLeastOnce)
-        .startClean()
-        .authenticateAs(username, password);
-    debugPrint('EXAMPLE::dwd mqtt client connecting....');
-
-    // setting connection message
-    mqtt_client.connectionMessage = connMess;
-
-    // Try connecting to mqtt client
-    try {
-      await mqtt_client.connect(username, password);
-    } on Exception catch (e) {
-      debugPrint('EXAMPLE::client exception - $e');
-      mqtt_client.disconnect();
-    }
-
-    /// Check we are connected
-    if (mqtt_client.connectionStatus.state == MqttConnectionState.connected) {
-      debugPrint('DCD hub client connected');
-    } else {
-      /// Use status here rather than state if you also want the broker return code.
-      debugPrint(
-          'DCD hub client client connection failed - disconnecting, status is ${mqtt_client.connectionStatus}');
-      mqtt_client.disconnect();
-    }
-  }
-
-  /// The subscribed callback
-  void onSubscribed(String topic) {
-    debugPrint('Subscription confirmed for topic $topic');
-  }
-
-  /// The unsolicited disconnect callback
-  void onDisconnected() {
-    debugPrint(
-        ':OnDisconnected mqtt_client callback - mqtt_client disconnection');
-    // if (mqtt_client.connectionStatus.returnCode ==
-    //     MqttConnectReturnCode.solicited) {
-    //   debugPrint('OnDisconnected callback is solicited, this is correct');
-    // }
-  }
-
-  /// The successful connect callback
-  void onConnected() {
-    debugPrint(
-        'OnConnected mqtt_client callback - mqtt_client connection was sucessful');
-  }
-
-  /// Pong callback
-  void pong() {
-    debugPrint('Ping response mqtt_client callback invoked');
   }
 
   // adds sensor stream subscriptions
@@ -660,8 +537,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // desired accuracy and the minimum distance change
     // (in meters) before updates are sent to the application - 1m in our case.
-    var location_options =
-        LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 1);
+    // var location_options =
+    //     LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 1);
     _stream_subscriptions
         .add(Geolocator.getPositionStream().listen((Position event) {
       setState(() {
@@ -677,55 +554,5 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // sets up MQTT connection
-  void set_up_mqtt() async {
-    /// Set logging on if needed, defaults to off
-    mqtt_client.logging(on: true);
 
-    /// If you intend to use a keep alive value in your connect message that is not the default(60s)
-    /// you must set it here
-    mqtt_client.keepAlivePeriod = 20;
-    mqtt_client.secure = true;
-    mqtt_client.port = 8883;
-
-    /// Security context
-    final sslCert1 = await rootBundle.load('assets/DigicertCA.crt');
-    final context = SecurityContext.defaultContext;
-    context.setTrustedCertificatesBytes(sslCert1.buffer.asInt8List());
-    mqtt_client.securityContext = context;
-
-    /// Add the unsolicited disconnection callback
-    mqtt_client.onDisconnected = onDisconnected;
-
-    /// Add the successful connection callback
-    mqtt_client.onConnected = onConnected;
-
-    /// Set an on bad certificate callback, note that the parameter is needed.
-    mqtt_client.onBadCertificate = (dynamic a) => true;
-
-    /// Add a subscribed callback, there is also an unsubscribed callback if you need it.
-    /// You can add these before connection or change them dynamically after connection if
-    /// you wish. There is also an onSubscribeFail callback for failed subscriptions, these
-    /// can fail either because you have tried to subscribe to an invalid topic or the broker
-    /// rejects the subscribe request.
-    mqtt_client.onSubscribed = onSubscribed;
-
-    /// Set a ping received callback if needed, called whenever a ping response(pong) is received
-    /// from the broker.
-    mqtt_client.pongCallback = pong;
-
-    mqtt_client.logging(on: true);
-  }
-
-  // creates or loads Thing object
-  void create_or_load_thing(String json_str) async {
-    if (json_str.isEmpty) {
-      await client.create_thing("myphonedevice", client.access_token);
-      await create_properties_hub();
-      await save_thing_to_disk();
-    } else {
-      // var intermed = jsonDecode(json_str);
-      client.thing = Thing.from_json(jsonDecode(json_str));
-      // debugPrint(client.thing.toString());
-    }
-  }
 }
