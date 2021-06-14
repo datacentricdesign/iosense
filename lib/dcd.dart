@@ -60,27 +60,27 @@ class Thing {
   // and returns created property
   Future<Property> create_property(
       String prop_type, String access_token) async {
-    if (id == null) throw Exception("Invalid thing id");
+    if (id == null) throw Exception('Invalid thing id');
     // basic address
-    var addr_url = Uri.parse('${basicURL}/things/${id}/properties');
+    var addr_url = Uri.parse('$basicURL/things/$id/properties');
 
-    Property blank = Property(
-        null, prop_type.toLowerCase(), 'A dummy ${prop_type}', prop_type);
+    var blank = Property(
+        null, prop_type.toLowerCase(), 'A dummy $prop_type', prop_type);
     //blank property,except type and name
     // if it is location data
-    if (prop_type == "FOUR_DIMENSIONS") {
-      blank.name = "4D location";
-      blank.description = """saves 4D location data:
+    if (prop_type == 'FOUR_DIMENSIONS') {
+      blank.name = '4D location';
+      blank.description = '''saves 4D location data:
                                  latitude in degrees normalized to the interval [-90.0,+90.0]
                                  longitude in degrees normalized to the interval [-90.0,+90.0]
                                  altitude in meters
                                  speed at which the device is traveling in m/s over ground
-                                 """;
+                                 ''';
     }
 
     var http_response = await http.post(addr_url,
         headers: {
-          'Authorization': 'bearer ${access_token}',
+          'Authorization': 'bearer $access_token',
           'Content-Type': 'application/json',
           'Response-Type': 'application/json'
         },
@@ -93,7 +93,7 @@ class Thing {
 
     var json = jsonDecode(http_response.body);
     // adding a new property to our thing
-    this.properties.add(Property.from_json(json));
+    properties.add(Property.from_json(json));
 
     return (Property.from_json(json));
   }
@@ -102,20 +102,20 @@ class Thing {
   Future<void> update_property_http(
       Property property, List<dynamic> values, String access_token) async {
     var addr_url = Uri.parse(
-        'https://dwd.tudelft.nl:443/bucket/api/things/${this.id}/properties/${property.id}');
+        'https://dwd.tudelft.nl:443/bucket/api/things/$id/properties/${property.id}');
 
     // struct of data to send to server value :[[ tmstamp, ... ]]
     var temp = <Object>[];
     // if four dimensions, timestamp is given by last value
-    temp.add((property.type == "FOUR_DIMENSIONS")
+    temp.add((property.type == 'FOUR_DIMENSIONS')
         ? (values[4].millisecondsSinceEpoch)
         : DateTime.now().millisecondsSinceEpoch);
     temp +=
-        (property.type != "FOUR_DIMENSIONS") ? values : values.sublist(0, 4);
+        (property.type != 'FOUR_DIMENSIONS') ? values : values.sublist(0, 4);
     property.values =
         temp; // setting the values of the property that's replaced
 
-    if (property.type == "PICTURE") {
+    if (property.type == 'PICTURE') {
       // we must redefine
       property.values = [];
     }
@@ -123,11 +123,11 @@ class Thing {
     //var lala = (jsonEncode(property.to_json()));
     // printing post message
     //debugPrint(jsonEncode(property.to_json());
-    if (property.type != "PICTURE") {
+    if (property.type != 'PICTURE') {
       var http_response = await http.put(
         addr_url,
         headers: {
-          'Authorization': 'bearer ${access_token}',
+          'Authorization': 'bearer $access_token',
           'Content-Type': 'application/json',
           'Response-Type': 'application/json'
         },
@@ -139,9 +139,9 @@ class Thing {
         throw Exception('''Failed to post property values 
                             ${property.values} 
                             to property with id ${property.id}, 
-                            from thing with id: ${this.id} 
+                            from thing with id: $id 
                             to the following link:
-                            ${addr_url}''');
+                            $addr_url''');
       }
     } else {
       // here we handle the specific media content ( picture/video )
@@ -157,16 +157,16 @@ class Thing {
 
   void update_property_mqtt(Property property, List<dynamic> values,
       String thing_token, MqttClient mqtt_client) {
-    var topic_url = '/things/${this.id}/properties/${property.id}';
+    var topic_url = '/things/$id/properties/${property.id}';
 
     // struct of data to send to server value :[[ tmstamp, ... ]]
     var temp = <Object>[];
     // if four dimensions, timestamp is given by last value
-    temp.add((property.type == "FOUR_DIMENSIONS")
+    temp.add((property.type == 'FOUR_DIMENSIONS')
         ? (values[4].millisecondsSinceEpoch)
         : DateTime.now().millisecondsSinceEpoch);
     temp +=
-        (property.type != "FOUR_DIMENSIONS") ? values : values.sublist(0, 4);
+        (property.type != 'FOUR_DIMENSIONS') ? values : values.sublist(0, 4);
     property.values =
         temp; // setting the values of the property that's replaced
 
@@ -177,6 +177,21 @@ class Thing {
       mqtt_client.publishMessage(
           topic_url, MqttQos.exactlyOnce, builder.payload);
     }
+  }
+
+  // Creates properties in hub that thing uses
+  //TODO: check the actual properties this thing has and create when needed
+  void create_properties_hub(String access_token) async {
+    // Sequential creation of properties (they are always in the same order)
+    if (properties.isEmpty) {
+      await create_property('GYROSCOPE', access_token);
+      await create_property('ACCELEROMETER', access_token);
+    }
+    // 5D location property vector
+    //await client.thing.create_property("FOUR_DIMENSIONS", client.access_token);
+
+    // Picture/ video property
+    //await client.thing.create_property("PICTURE", client.access_token);
   }
 }
 
@@ -240,7 +255,7 @@ class DCD_client {
     var addr_url = Uri.parse(basicURL + '/things');
     // creating empty thing
     var http_response = await http.get(addr_url, headers: {
-      'Authorization': 'bearer ${access_token}',
+      'Authorization': 'bearer $access_token',
       'Content-Type': 'application/json',
       'Response-Type': 'application/json'
     });
@@ -253,17 +268,16 @@ class DCD_client {
     // }
 
     Iterable l = json.decode(http_response.body);
-    List<Thing> things =
-        List<Thing>.from(l.map((model) => Thing.from_json(model)));
+    var things = List<Thing>.from(l.map((model) => Thing.from_json(model)));
     //check the JSON file for a thing with the same name
     things.forEach((element) {
       if (element.name == thing_name) {
-        this.thing = element;
+        thing = element;
         return element;
       }
     });
 
-    if (this.thing == null) {
+    if (thing == null) {
       // if we don't find the thing, create it
       return await create_thing(thing_name, access_token);
     }
@@ -273,11 +287,11 @@ class DCD_client {
   Future<Thing> create_thing(String thing_name, String access_token) async {
     var addr_url = Uri.parse(basicURL + '/things');
     // creating empty thing
-    Thing blank = Thing(null, thing_name, null, "test", null, null);
+    var blank = Thing(null, thing_name, null, 'test', null, null);
     var http_response = await http.post(
       addr_url,
       headers: {
-        'Authorization': 'bearer ${access_token}',
+        'Authorization': 'bearer $access_token',
         'Content-Type': 'application/json',
         'Response-Type': 'application/json'
       },
@@ -290,16 +304,17 @@ class DCD_client {
     }
 
     var json = jsonDecode(http_response.body);
-    this.thing = Thing.from_json(json);
-    return (this.thing);
+    thing = Thing.from_json(json);
+    thing.create_properties_hub(access_token);
+    return (thing);
   }
 
   // structure for  deleting all things in hub
   void delete_things_hub(List<String> ids_to_delete) {
     ids_to_delete.forEach((prop_id_to_delete) async {
       var http_response = await http.delete(
-          Uri.parse('https://dwd.tudelft.nl/api/things/${prop_id_to_delete}'),
-          headers: {'Authorization': 'bearer ${this.access_token}'});
+          Uri.parse('https://dwd.tudelft.nl/api/things/$prop_id_to_delete'),
+          headers: {'Authorization': 'bearer $access_token'});
     });
   }
 }

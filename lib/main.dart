@@ -1,20 +1,17 @@
 import 'dart:async'; // async support
-import 'dart:convert'; // json en/decoder
-import 'dart:io';
+// json en/decoder
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sensors/sensors.dart'; // flutter cross-platform sensor suite
 import 'package:flutter_appauth/flutter_appauth.dart'; // AppAuth in flutter
-import 'package:http/http.dart' as http; //flutter http library
+//flutter http library
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart'; // package for geolocation
 import 'package:camera/camera.dart'; // package for camera
-import 'package:path/path.dart' as path; // package for path manipulation
-import 'package:path_provider/path_provider.dart'; // package for path finding
-import 'package:mqtt_client/mqtt_client.dart';
+// package for path manipulation
+// package for path finding
 import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'dcd.dart'
     show DCD_client, Thing; // DCD(data centric design) definitions
 import 'image_conversion.dart'; // import image conversion functions
@@ -90,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _running_sensors_changed = false, streaming_to_hub = false;
 
   // set holding currently running sensors
-  final Set<String> _running_sensors = Set<String>();
+  final Set<String> _running_sensors = <String>{};
 
   // accelerometer forces along x, y and z axes , in m/s^2
   List<double> _user_accel_values; // save accel values without gravity
@@ -158,10 +155,10 @@ class _MyHomePageState extends State<MyHomePage> {
             preferredSize: const Size.fromHeight(80.0)),
         leading: Visibility(
           // doing this so I can get largest size possible for icon
+          visible: streaming_to_hub,
           child: LayoutBuilder(builder: (context, constraint) {
             return Icon(Icons.adjust, color: Colors.red);
           }),
-          visible: streaming_to_hub,
         ),
       ),
       body: Center(
@@ -437,7 +434,8 @@ class _MyHomePageState extends State<MyHomePage> {
         streaming_to_hub = true;
 
         await client.FindOrCreateThing('myphonedevice', client.access_token);
-        await create_properties_hub();
+
+        //await create_properties_hub();
         // await save_thing_to_disk();
 
         // set up MQTT
@@ -451,22 +449,6 @@ class _MyHomePageState extends State<MyHomePage> {
     } on Exception catch (e, s) {
       debugPrint('login error: $e - stack: $s');
     }
-  }
-
-  // Creates properties in hub that thing uses
-  void create_properties_hub() async {
-    if (client.access_token == null) {
-      throw Exception('Invalid client access token');
-    }
-
-    // Sequential creation of properties (they are always in the same order)
-    await client.thing.create_property('GYROSCOPE', client.access_token);
-    await client.thing.create_property('ACCELEROMETER', client.access_token);
-    // 5D location property vector
-    //await client.thing.create_property("FOUR_DIMENSIONS", client.access_token);
-
-    // Picture/ video property
-    //await client.thing.create_property("PICTURE", client.access_token);
   }
 
   // Updates the properties that are selected in the hub
