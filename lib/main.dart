@@ -462,9 +462,17 @@ class _MyHomePageState extends State<MyHomePage> {
     // do not do anything until client is established
     if (client.thing == null) return;
 
+    //TODO: implment a better way to figure out if we have the properties in the "thing"
+    if (client.thing.properties.length < 2) return;
+
+    var avalibleProps = <String>[];
+
+    client.thing.properties.forEach((element) {
+      avalibleProps.add(element.name);
+    })
+
     // do not do anything unless it is a running sensor and is established in hub
-    if (_running_sensors.contains(('Gyro')) &&
-        client.thing.properties.length == sensor_list_size) {
+    if (_running_sensors.contains(('Gyro'))) {
 /*            client.thing.update_property_http(client.thing.properties[0],
                                          _gyro_values,
                                          client.access_token);*/
@@ -475,8 +483,7 @@ class _MyHomePageState extends State<MyHomePage> {
       client.thing.update_property_http(
           client.thing.properties[0], _gyro_values, client.access_token);
     }
-    if (_running_sensors.contains(('Accel')) &&
-        client.thing.properties.length == sensor_list_size) {
+    if (_running_sensors.contains(('Accel'))) {
       //   client.thing.update_property_mqtt(client.thing.properties[1],
       //       _user_accel_values, client.access_token, mqtt_client);
       // }
@@ -489,8 +496,12 @@ class _MyHomePageState extends State<MyHomePage> {
       if (listEquals<dynamic>(_loc_values, [0, 0, 0, 0, 0])) {
         return;
       }
-      client.thing.update_property_http(
-          client.thing.properties[2], _loc_values, client.access_token);
+      //send the location value
+      client.thing.update_property_http(client.thing.properties[2],
+          _loc_values.sublist(0, 2), client.access_token);
+      //send the altitude value
+      client.thing.update_property_http(client.thing.properties[2],
+          _loc_values.sublist(2, 3), client.access_token);
 
       // client.thing.update_property_mqtt(client.thing.properties[2], _loc_values,
       //     client.access_token, mqtt_client);
