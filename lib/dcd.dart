@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:mqtt_client/mqtt_client.dart'; // package for MQTT connection
-import 'dart:developer' as developer;
+//import 'dart:developer' as developer;
 
 final basicURL = 'https://dwd.tudelft.nl:443/bucket/api';
 
@@ -65,18 +65,9 @@ class Thing {
     var addr_url = Uri.parse('$basicURL/things/$id/properties');
 
     var blank = Property(
-        null, prop_type.toLowerCase(), 'A dummy $prop_type', prop_type);
+        null, prop_type.toLowerCase(), 'A simple $prop_type', prop_type);
     //blank property,except type and name
     // if it is location data
-    if (prop_type == 'FOUR_DIMENSIONS') {
-      blank.name = '4D location';
-      blank.description = '''saves 4D location data:
-                                 latitude in degrees normalized to the interval [-90.0,+90.0]
-                                 longitude in degrees normalized to the interval [-90.0,+90.0]
-                                 altitude in meters
-                                 speed at which the device is traveling in m/s over ground
-                                 ''';
-    }
 
     var http_response = await http.post(addr_url,
         headers: {
@@ -152,8 +143,7 @@ class Thing {
     //return(Property.from_json(json));
   }
 
-  // TODO:
-  // - debug and fix authorization of MQTT on the bucket side
+  // TODO: - debug and fix authorization of MQTT on the bucket side
 
   void update_property_mqtt(Property property, List<dynamic> values,
       String thing_token, MqttClient mqtt_client) {
@@ -180,18 +170,23 @@ class Thing {
   }
 
   // Creates properties in hub that thing uses
-  //TODO: check the actual properties this thing has and create when needed
+  //TODO:
+  // - check the actual properties this thing has and create when needed
+  // - make sure all properties get created regarless of use
   void create_properties_hub(String access_token) async {
     // Sequential creation of properties (they are always in the same order)
-    if (properties.isEmpty) {
-      await create_property('GYROSCOPE', access_token);
-      await create_property('ACCELEROMETER', access_token);
-    }
+    //if (properties.isEmpty) {
+    await create_property('GYROSCOPE', access_token);
+    await create_property('ACCELEROMETER', access_token);
+    //}
     // 5D location property vector
-    //await client.thing.create_property("FOUR_DIMENSIONS", client.access_token);
+    //await create_property('FOUR_DIMENSIONS', access_token);
+    // 5D vector -> location (2D) and altitude (1D)
+    await create_property('LOCATION', access_token);
+    await create_property('ALTITUDE', access_token);
 
     // Picture/ video property
-    //await client.thing.create_property("PICTURE", client.access_token);
+    await create_property("PICTURE", access_token);
   }
 }
 
@@ -230,6 +225,7 @@ class Property {
 
 // client of DCD,
 // used to receive token, connect and interact with the hub.
+// ignore: camel_case_types
 class DCD_client {
   final authorization_endpoint =
       Uri.parse('https://dwd.tudelft.nl/oauth2/auth');

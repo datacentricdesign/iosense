@@ -12,8 +12,7 @@ import 'package:camera/camera.dart'; // package for camera
 // package for path manipulation
 // package for path finding
 import 'package:mqtt_client/mqtt_server_client.dart';
-import 'dcd.dart'
-    show DCD_client, Thing; // DCD(data centric design) definitions
+import 'dcd.dart' show DCD_client; // DCD(data centric design) definitions
 import 'image_conversion.dart'; // import image conversion functions
 
 // async main to call our main app state, after retrieving camera
@@ -399,7 +398,6 @@ class _MyHomePageState extends State<MyHomePage> {
       //  separate isolate (separate thread)
       var png = await compute(convert_image_to_png, image);
 
-      //debugPrint("${image.planes}");
       // update property
       await client.thing.update_property_http(
           client.thing.properties[3], png, client.access_token);
@@ -412,43 +410,46 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Stream to hub function, connects to it and sends data
   Future stream_to_hub() async {
-    try {
-      var result = await appAuth.authorizeAndExchangeCode(
-          AuthorizationTokenRequest(
-              client.id, client.redirect_url.toString(),
-              discoveryUrl:
-                  'https://dwd.tudelft.nl/.well-known/openid-configuration',
-              scopes: [
-            'openid',
-            'offline',
-            'email',
-            'profile',
-            'dcd:public',
-            'dcd:things'
-          ]));
+    if (!client.authorized) {
+      try {
+        var result = await appAuth.authorizeAndExchangeCode(
+            AuthorizationTokenRequest(client.id, client.redirect_url.toString(),
+                discoveryUrl:
+                    'https://dwd.tudelft.nl/.well-known/openid-configuration',
+                scopes: [
+              'openid',
+              'offline',
+              'email',
+              'profile',
+              'dcd:public',
+              'dcd:things'
+            ]));
 
-      if (result != null) {
-        client.authorized = true;
-        // save the code verifier as it must be used when exchanging the token
-        client.access_token = result.accessToken;
-        streaming_to_hub = true;
+        if (result != null) {
+          client.authorized = true;
+          // save the code verifier as it must be used when exchanging the token
+          client.access_token = result.accessToken;
 
-        await client.FindOrCreateThing('myphonedevice', client.access_token);
+          //await create_properties_hub();
+          // await save_thing_to_disk();
 
-        //await create_properties_hub();
-        // await save_thing_to_disk();
+          // set up MQTT
+          // set_up_mqtt();
 
-        // set up MQTT
-        // set_up_mqtt();
-
-        // start connection on MQTT port
-        //connect_mqtt(client.thing.id, client.access_token);
-      } else {
-        debugPrint('authoirzation went wrong!');
+          // start connection on MQTT port
+          //connect_mqtt(client.thing.id, client.access_token);
+        } else {
+          debugPrint('authoirzation went wrong!');
+        }
+      } on Exception catch (e, s) {
+        debugPrint('login error: $e - stack: $s');
       }
-    } on Exception catch (e, s) {
-      debugPrint('login error: $e - stack: $s');
     }
+
+    // we should be authorized right now
+    streaming_to_hub = true;
+
+    await client.FindOrCreateThing('myphonedevice', client.access_token);
   }
 
   // Updates the properties that are selected in the hub
@@ -494,8 +495,6 @@ class _MyHomePageState extends State<MyHomePage> {
       // client.thing.update_property_mqtt(client.thing.properties[2], _loc_values,
       //     client.access_token, mqtt_client);
     }
-
-    // interact_hub_http();
   }
 
   // adds sensor stream subscriptions
@@ -534,7 +533,4 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }));
   }
-
-  // sets up MQTT connection
-
 }
