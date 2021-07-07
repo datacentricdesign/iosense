@@ -94,3 +94,7 @@ doc/api/
 *.js.deps
 *.js.map
 .flutter-plugins-dependencies
+ios/Flutter/flutter_export_environment.sh
+pubspec.lock
+pubspec.lock
+ios/Flutter/flutter_export_environment.sh
