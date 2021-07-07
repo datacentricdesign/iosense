@@ -449,7 +449,10 @@ class _MyHomePageState extends State<MyHomePage> {
     // we should be authorized right now
     streaming_to_hub = true;
 
-    await client.FindOrCreateThing('myphonedevice', client.access_token);
+    if (client.thing == null) {
+      //this means we do not have our "thing" in local memory, thus we must fetch/make it
+      await client.FindOrCreateThing('myphonedevice', client.access_token);
+    }
   }
 
   // Updates the properties that are selected in the hub
@@ -457,20 +460,15 @@ class _MyHomePageState extends State<MyHomePage> {
   // this function does not include camera, as that requires further processing
   // that happens in the upload image to hub
   void update_properties_hub() {
-    // TODO: switch from static sensor size list to something more dynamic
-    var sensor_list_size = 2; // holds amount of sensors currently implemented
     // do not do anything until client is established
     if (client.thing == null) return;
 
-    //TODO: implment a better way to figure out if we have the properties in the "thing"
-    if (client.thing.properties.length < 2) return;
+    //TODO: implment a better way to figure out if we have the  all of the properties in the "thing"
+    // right now we just wait until the properties match the number we suspect, not type!
 
-    var avalibleProps = <String>[];
+    if (client.thing.properties.length < 4) return;
 
-    client.thing.properties.forEach((element) {
-      avalibleProps.add(element.name);
-    })
-
+    //TODO: match the sensor name with the property rather then use the index location
     // do not do anything unless it is a running sensor and is established in hub
     if (_running_sensors.contains(('Gyro'))) {
 /*            client.thing.update_property_http(client.thing.properties[0],
@@ -491,8 +489,9 @@ class _MyHomePageState extends State<MyHomePage> {
           client.thing.properties[1], _user_accel_values, client.access_token);
     }
 
-    if (_running_sensors.contains(('Location')) &&
-        client.thing.properties.length == sensor_list_size) {
+    //TODO: location occasionally sends timestamp, long not lat, long??!??!?!
+    if (_running_sensors.contains(('Location'))) {
+      // && client.thing.properties.length == sensor_list_size
       if (listEquals<dynamic>(_loc_values, [0, 0, 0, 0, 0])) {
         return;
       }
@@ -500,7 +499,7 @@ class _MyHomePageState extends State<MyHomePage> {
       client.thing.update_property_http(client.thing.properties[2],
           _loc_values.sublist(0, 2), client.access_token);
       //send the altitude value
-      client.thing.update_property_http(client.thing.properties[2],
+      client.thing.update_property_http(client.thing.properties[3],
           _loc_values.sublist(2, 3), client.access_token);
 
       // client.thing.update_property_mqtt(client.thing.properties[2], _loc_values,

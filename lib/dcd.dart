@@ -29,21 +29,21 @@ class Thing {
   // named constructor from json object
   // also using an initializer list
 
-  Thing.from_json(Map<String, dynamic> json)
-      : id = json['id'],
-        name = json['name'],
-        description = json['description'],
-        type = json['type'],
-        // taking a json input, for each object in properties
-        // will place a Property into the list,  created with said object
-        properties = [
-          if (json['properties'] != null)
-            {
-              for (var property_json in json['properties'])
-                Property.from_json(property_json)
-            }
-        ],
-        readAt = json['readAt'];
+  Thing.from_json(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    description = json['description'];
+    type = json['type'];
+    // taking a json input, for each object in properties
+    // will place a Property into the list,  created with said object
+    properties = [];
+    if (json['properties'] != null) {
+      for (var property_json in json['properties']) {
+        properties.add(Property.from_json(property_json));
+      }
+    }
+    readAt = json['readAt'];
+  }
 
   // arrow notation =>x (replaces  with {return x}
   Map<String, dynamic> to_json() => {
@@ -95,16 +95,8 @@ class Thing {
     var addr_url = Uri.parse(
         'https://dwd.tudelft.nl:443/bucket/api/things/$id/properties/${property.id}');
 
-    // struct of data to send to server value :[[ tmstamp, ... ]]
-    var temp = <Object>[];
-    // if four dimensions, timestamp is given by last value
-    temp.add((property.type == 'FOUR_DIMENSIONS')
-        ? (values[4].millisecondsSinceEpoch)
-        : DateTime.now().millisecondsSinceEpoch);
-    temp +=
-        (property.type != 'FOUR_DIMENSIONS') ? values : values.sublist(0, 4);
     property.values =
-        temp; // setting the values of the property that's replaced
+        values; // setting the values of the property that's replaced
 
     if (property.type == 'PICTURE') {
       // we must redefine
@@ -135,7 +127,7 @@ class Thing {
                             $addr_url''');
       }
     } else {
-      // here we handle the specific media content ( picture/video )
+      // TODO: here we handle the specific media content ( picture/video )
       // wait until http is redefined
     }
     return (true);
@@ -172,7 +164,6 @@ class Thing {
   // Creates properties in hub that thing uses
   //TODO:
   // - check the actual properties this thing has and create when needed
-  // - make sure all properties get created regarless of use
   void create_properties_hub(String access_token) async {
     // Sequential creation of properties (they are always in the same order)
     //if (properties.isEmpty) {
@@ -186,7 +177,7 @@ class Thing {
     await create_property('ALTITUDE', access_token);
 
     // Picture/ video property
-    await create_property("PICTURE", access_token);
+    await create_property('PICTURE', access_token);
   }
 }
 
@@ -256,6 +247,7 @@ class DCD_client {
       'Response-Type': 'application/json'
     });
 
+    //TODO: implment a check if the Thing was created
     // if (http_response.statusCode != 201 ||
     //     http_response.statusCode != 200 ||
     //     http_response.statusCode != 202) {
