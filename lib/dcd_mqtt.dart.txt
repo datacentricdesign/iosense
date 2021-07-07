@@ -1,0 +1,96 @@
+// connects mqtt client to the hub
+void connect_mqtt(String username, String password) async {
+  // set connection message
+  final MqttConnectMessage connMess = MqttConnectMessage()
+      .withClientIdentifier("clients:iosense" + client.thing.id.substring(4))
+      .withWillQos(MqttQos.atLeastOnce)
+      .startClean()
+      .authenticateAs(username, password);
+  debugPrint('EXAMPLE::dwd mqtt client connecting....');
+
+  // setting connection message
+  mqtt_client.connectionMessage = connMess;
+
+  // Try connecting to mqtt client
+  try {
+    await mqtt_client.connect(username, password);
+  } on Exception catch (e) {
+    debugPrint('EXAMPLE::client exception - $e');
+    mqtt_client.disconnect();
+  }
+
+  /// Check we are connected
+  if (mqtt_client.connectionStatus.state == MqttConnectionState.connected) {
+    debugPrint('DCD hub client connected');
+  } else {
+    /// Use status here rather than state if you also want the broker return code.
+    debugPrint(
+        'DCD hub client client connection failed - disconnecting, status is ${mqtt_client.connectionStatus}');
+    mqtt_client.disconnect();
+  }
+}
+
+/// The subscribed callback
+void onSubscribed(String topic) {
+  debugPrint('Subscription confirmed for topic $topic');
+}
+
+/// The unsolicited disconnect callback
+void onDisconnected() {
+  debugPrint(
+      ':OnDisconnected mqtt_client callback - mqtt_client disconnection');
+  // if (mqtt_client.connectionStatus.returnCode ==
+  //     MqttConnectReturnCode.solicited) {
+  //   debugPrint('OnDisconnected callback is solicited, this is correct');
+  // }
+}
+
+/// The successful connect callback
+void onConnected() {
+  debugPrint(
+      'OnConnected mqtt_client callback - mqtt_client connection was sucessful');
+}
+
+/// Pong callback
+void pong() {
+  debugPrint('Ping response mqtt_client callback invoked');
+}
+
+void set_up_mqtt() async {
+  /// Set logging on if needed, defaults to off
+  mqtt_client.logging(on: true);
+
+  /// If you intend to use a keep alive value in your connect message that is not the default(60s)
+  /// you must set it here
+  mqtt_client.keepAlivePeriod = 20;
+  mqtt_client.secure = true;
+  mqtt_client.port = 8883;
+
+  /// Security context
+  final sslCert1 = await rootBundle.load('assets/DigicertCA.crt');
+  final context = SecurityContext.defaultContext;
+  context.setTrustedCertificatesBytes(sslCert1.buffer.asInt8List());
+  mqtt_client.securityContext = context;
+
+  /// Add the unsolicited disconnection callback
+  mqtt_client.onDisconnected = onDisconnected;
+
+  /// Add the successful connection callback
+  mqtt_client.onConnected = onConnected;
+
+  /// Set an on bad certificate callback, note that the parameter is needed.
+  mqtt_client.onBadCertificate = (dynamic a) => true;
+
+  /// Add a subscribed callback, there is also an unsubscribed callback if you need it.
+  /// You can add these before connection or change them dynamically after connection if
+  /// you wish. There is also an onSubscribeFail callback for failed subscriptions, these
+  /// can fail either because you have tried to subscribe to an invalid topic or the broker
+  /// rejects the subscribe request.
+  mqtt_client.onSubscribed = onSubscribed;
+
+  /// Set a ping received callback if needed, called whenever a ping response(pong) is received
+  /// from the broker.
+  mqtt_client.pongCallback = pong;
+
+  mqtt_client.logging(on: true);
+}
