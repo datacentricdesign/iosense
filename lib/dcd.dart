@@ -118,13 +118,19 @@ class Thing {
       );
 
       if (http_response.statusCode != 200) {
+        //TODO: replce with snackbar
+        //TODO: do something with the error (retry, stop trying?)
+        //error 503-> body:"upstream connect error or disconnect/reset before headers. reset reason: connection termination"
+        //error 500
+
         // If that response was not OK, throw an error.
-        throw Exception('''Failed to post property values 
-                            ${property.values} 
-                            to property with id ${property.id}, 
-                            from thing with id: $id 
-                            to the following link:
-                            $addr_url''');
+        // throw Exception('''Failed to post property values
+        //                     ${property.values}
+        //                     to property with id ${property.id},
+        //                     from thing with id: $id
+        //                     to the following link:
+        //                     $addr_url''');
+        return (true);
       }
     } else {
       // TODO: here we handle the specific media content ( picture/video )

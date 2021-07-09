@@ -146,12 +146,12 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         // in case we have recording, adding a record button
         bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(80.0),
             child: Text(
               client?.thing?.id ?? ' ',
               textAlign: TextAlign.left,
               style: TextStyle(color: Colors.red),
-            ),
-            preferredSize: const Size.fromHeight(80.0)),
+            )),
         leading: Visibility(
           // doing this so I can get largest size possible for icon
           visible: streaming_to_hub,
@@ -179,7 +179,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // center the children vertically; the main axis here is the vertical
           // axis because Columns are vertical (the cross axis would be
           // horizontal). */
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             // Accelerometer
             CheckboxListTile(
@@ -309,6 +309,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Visibility(
               //if there are any sensors running
               visible: _running_sensors.isNotEmpty && _running_sensors_changed,
+
               child: RaisedButton(
                 onPressed: () async {
                   // do not go forwards until streaming has happened
@@ -400,7 +401,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       // update property
       await client.thing.update_property_http(
-          client.thing.properties[3], png, client.access_token);
+          client.thing.properties[4], png, client.access_token);
 
       debugPrint('Image sending attemp processed');
       // set boolean to false (until the periodic timer reactivates it)
