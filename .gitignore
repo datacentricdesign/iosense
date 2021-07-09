@@ -98,3 +98,4 @@ ios/Flutter/flutter_export_environment.sh
 pubspec.lock
 pubspec.lock
 ios/Flutter/flutter_export_environment.sh
+.flutter-plugins-dependencies
