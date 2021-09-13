@@ -452,7 +452,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (client.thing == null) {
       //this means we do not have our "thing" in local memory, thus we must fetch/make it
-      await client.FindOrCreateThing('myphonedevice', client.access_token);
+      await client.create_thing('myphonedevice', client.access_token);
     }
   }
 
