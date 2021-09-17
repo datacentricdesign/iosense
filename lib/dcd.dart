@@ -18,9 +18,14 @@ import 'package:http/http.dart' as http;
 const basicURL = 'https://dwd.tudelft.nl:443/bucket/api';
 
 String? _accessToken;
+String? _refreshToken;
 
 String getAccessToken([String? newAccessToken]) {
   /// returns the access token, either the one passed or the one DCD has
+  /// checks if the token is "fresh"
+  ///
+  ///
+
   var finalToken = '';
   // if we're not passed a new access token,
   if (newAccessToken == null) {
@@ -56,15 +61,13 @@ class Thing extends ChangeNotifier {
   String type = '';
   List<Property>? properties;
   int? readAt;
-  String? token;
   //Map<String, dynamic> keys;
 
   String latestError = '';
   String lastMessageToSend = '';
 
   Thing(this.id, this.name, this.description, this.type, this.properties,
-      this.readAt,
-      [this.token]);
+      this.readAt);
 
   // named constructor from json object
   // also using an initializer list
@@ -74,8 +77,6 @@ class Thing extends ChangeNotifier {
     name = json['name'];
     description = json['description'];
     type = json['type'];
-    // taking a json input, for each object in properties
-    // will place a Property into the list,  created with said object
     properties = [];
     if (json['properties'] != null) {
       for (var propertyJson in json['properties']) {
@@ -83,7 +84,6 @@ class Thing extends ChangeNotifier {
       }
     }
     readAt = json['readAt'];
-    token = json['token'];
   }
 
   // arrow notation =>x (replaces  with {return x}
@@ -96,20 +96,22 @@ class Thing extends ChangeNotifier {
         'readAt': readAt ?? 0,
       };
 
-  // Given an EXISTING thing, and an access token,
-  // creates a property in it of type prop_type,
-  // and returns created property
   Future<Property> createProperty(String propType,
       [String? newAccessToken]) async {
+    /// Given an EXISTING thing,
+    /// creates a property in it of type prop_type,
+    /// and returns created property
+    ///
     if (id == '') throw Exception('Invalid thing id');
 
     // basic address
     var addrUrl = Uri.parse('$basicURL/things/$id/properties');
 
+    // create a blank property
     var blank =
         Property(null, propType.toLowerCase(), 'A simple $propType', propType);
-    //blank property
 
+    // 'post' the blank property to the server
     var httpResponse = await http.post(addrUrl,
         headers: httpHeaders(newAccessToken),
         body: jsonEncode(blank.to_json()));
@@ -119,11 +121,13 @@ class Thing extends ChangeNotifier {
       throw Exception('Failed to post property to thing');
     }
 
-    var json = jsonDecode(httpResponse.body);
-    // adding a new property to our thing
-    properties!.add(Property.from_json(json));
+    // create the new property from the server response
+    var newProperty = Property.from_json(jsonDecode(httpResponse.body));
 
-    return (Property.from_json(json));
+    // adding a new property to our thing
+    properties!.add(newProperty);
+
+    return (newProperty);
   }
 
   // updates property values given property, values and access token
@@ -167,8 +171,7 @@ class Thing extends ChangeNotifier {
   }
 
   void createPropertiesHub([String? accessToken]) async {
-    // Sequential creation of properties (they are always in the same order)
-    //if (properties.isEmpty) {
+    /// creates the properties that is expected of a phone
     await createProperty('GYROSCOPE', accessToken);
     await createProperty('ACCELEROMETER', accessToken);
     await createProperty('LOCATION', accessToken);
@@ -179,6 +182,8 @@ class Thing extends ChangeNotifier {
     /// updates property values given the property's name and new values values
     /// returns true if successful (item found)
     /// returns false if unsuccessful (item not found)
+    ///
+    /// TODO: verify the proerty was updated
     ///
 
     var updated = false;
@@ -251,9 +256,6 @@ class DCD_client extends ChangeNotifier {
     'dcd:properties'
   ];
 
-  String? _refreshToken;
-  // ignore: non_constant_identifier_names
-
   Thing thing = Thing('', '', '', '', [], 0); // holds a blank thing
   late List<Thing> allThings; // holds a list of things
   bool authorized = false;
@@ -264,8 +266,11 @@ class DCD_client extends ChangeNotifier {
   // app authentication object
   final FlutterAppAuth _appAuth = FlutterAppAuth();
 
-  // ignore: non_constant_identifier_names
   Future<Thing?> FindOrCreateThing(String thingName) async {
+    /// checks the "things" associated with the user
+    /// returns the first "thing" with a matching name
+    /// or creates that thing
+
     //make sure we got one when constructed
     getAccessToken();
     //use the one we have
@@ -300,6 +305,8 @@ class DCD_client extends ChangeNotifier {
     var uri = Uri.parse(basicURL + '/things');
     // creating empty thing
     var blank = Thing('', thingName, '', 'test', null, null);
+
+    // post it to the server
     var httpResponse = await http.post(
       uri,
       headers: httpHeaders(accessToken),
@@ -309,19 +316,16 @@ class DCD_client extends ChangeNotifier {
     if (httpResponse.statusCode != 201) {
       // If that response was not OK, throw an error.
       latestError = 'Failed to post thing';
-      notifyListeners();
       throw Exception('Failed to post to thing');
     }
 
-    var json = jsonDecode(httpResponse.body);
-    thing = Thing.from_json(json);
-
-    notifyListeners();
+    thing = Thing.from_json(jsonDecode(httpResponse.body));
 
     // since we always created the same properties on the thing (at least....)
     // we can just create the general properties from the thing
     // thing.createPropertiesHub(accessToken!);
     thing.createPropertiesHub();
+    notifyListeners();
     return (thing);
   }
 
@@ -340,8 +344,6 @@ class DCD_client extends ChangeNotifier {
   void _processTokenResponse(TokenResponse? result) {
     _accessToken = result!.accessToken;
     _refreshToken = result.refreshToken;
-    authorized = true;
-    notifyListeners();
   }
 
   Future<bool> authorize() async {
@@ -352,7 +354,10 @@ class DCD_client extends ChangeNotifier {
             scopes: _scopes));
     if (result != null) {
       _processTokenResponse(result);
+      authorized = true;
     }
+
+    notifyListeners();
     // result is null, so something when wrong
     return false;
   }
