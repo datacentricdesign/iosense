@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
+// import 'package:provider/provider.dart';
 
 ////// this DCD file needs extensive reworking
 ///TODO:
@@ -21,7 +21,7 @@ String? _accessToken;
 
 String getAccessToken([String? newAccessToken]) {
   /// returns the access token, either the one passed or the one DCD has
-  String finalToken = '';
+  var finalToken = '';
   // if we're not passed a new access token,
   if (newAccessToken == null) {
     //make sure we got one when constructed
@@ -41,7 +41,7 @@ String getAccessToken([String? newAccessToken]) {
 Map<String, String> httpHeaders([String? newAccessToken]) {
   /// returns the headers for the http request, checking the access token first
 
-  String token = getAccessToken(newAccessToken);
+  var token = getAccessToken(newAccessToken);
   return ({
     'Authorization': 'bearer $token',
     'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ class Thing extends ChangeNotifier {
     // basic address
     var addrUrl = Uri.parse('$basicURL/things/$id/properties');
 
-    Property blank =
+    var blank =
         Property(null, propType.toLowerCase(), 'A simple $propType', propType);
     //blank property
 
@@ -159,7 +159,7 @@ class Thing extends ChangeNotifier {
           'Failed to gather properties from thing with id: $id to the following response: ${httpResponse.statusCode}';
     } else {
       var json = jsonDecode(httpResponse.body);
-      for (var propertyJson in json["jsonProperty"]) {
+      for (var propertyJson in json['jsonProperty']) {
         properties!.add(Property.from_json(propertyJson));
       }
     }
@@ -181,7 +181,7 @@ class Thing extends ChangeNotifier {
     /// returns false if unsuccessful (item not found)
     ///
 
-    bool updated = false;
+    var updated = false;
     name = name.toLowerCase();
 
     for (var property in properties!) {
@@ -297,7 +297,7 @@ class DCD_client extends ChangeNotifier {
   Future<Thing?> createThing(String thingName, [String? accessToken]) async {
     // check to make sure we have the access token
 
-    Uri uri = Uri.parse(basicURL + '/things');
+    var uri = Uri.parse(basicURL + '/things');
     // creating empty thing
     var blank = Thing('', thingName, '', 'test', null, null);
     var httpResponse = await http.post(
@@ -327,7 +327,7 @@ class DCD_client extends ChangeNotifier {
 
   Future<void> refresh() async {
     try {
-      final TokenResponse? result = await _appAuth.token(TokenRequest(
+      final result = await _appAuth.token(TokenRequest(
           id, redirectUrl.toString(),
           refreshToken: _refreshToken,
           discoveryUrl:

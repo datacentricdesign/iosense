@@ -5,21 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sensors/sensors.dart'; // flutter cross-platform sensor suite
-import 'package:flutter_appauth/flutter_appauth.dart'; // AppAuth in flutter
 //flutter http library
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart'; // package for geolocation
-import 'package:camera/camera.dart'; // package for camera
-// package for path manipulation
-// package for path finding
-import 'package:mqtt_client/mqtt_server_client.dart';
 import 'dcd.dart' show DCD_client; // DCD(data centric design) definitions
 
 // async main to call our main app state, after retrieving camera
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Obtain a list of the available cameras on the device.
-  final cameras = await availableCameras();
 
   runApp(MyApp());
 }
@@ -111,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         .thing
                         .name ==
                     '') {
-                  Provider.of<DCD_client>(context, listen: false)
+                  await Provider.of<DCD_client>(context, listen: false)
                       .FindOrCreateThing('ioSense phone');
                 }
               },
@@ -127,8 +120,8 @@ class _MyHomePageState extends State<MyHomePage> {
           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text("Sensor"),
-              Text("Send to Bucket"),
+              Text('Sensor'),
+              Text('Send to Bucket'),
             ]),
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -235,7 +228,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void dispose() {
     super.dispose();
-    for (StreamSubscription<dynamic> subscription in _streamSubscriptions) {
+    for (var subscription in _streamSubscriptions) {
       subscription.cancel();
     }
   }
@@ -286,18 +279,6 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 // taken from https://pub.dev/packages/geolocator/example
-
-enum _PositionItemType {
-  permission,
-  position,
-}
-
-class _PositionItem {
-  _PositionItem(this.type, this.displayValue);
-
-  final _PositionItemType type;
-  final String displayValue;
-}
 
 class _LocationItem {
   _LocationItem(this.lat, this.long, this.speed, this.timestamp);
