@@ -311,7 +311,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Provider.of<DCD_client>(context, listen: false)
             .thing
             .updatePropertyByName(
-                'Magnetic Field', [event.x, event.y, event.z]);
+                'Magnetic_Field', [event.x, event.y, event.z]);
       }
       setState(() {
         _magnetometerValues = <double>[event.x, event.y, event.z];
