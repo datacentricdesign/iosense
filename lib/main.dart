@@ -4,7 +4,7 @@ import 'dart:async'; // async support
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sensors/sensors.dart'; // flutter cross-platform sensor suite
+import 'package:sensors_plus/sensors_plus.dart'; // flutter cross-platform sensor suite
 //flutter http library
 import 'package:geolocator/geolocator.dart'; // package for geolocation
 import 'dcd.dart' show DCD_client; // DCD(data centric design) definitions
