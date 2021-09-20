@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:provider/provider.dart';
 
 ////// this DCD file needs extensive reworking
@@ -31,7 +32,9 @@ String getAccessToken([String? newAccessToken]) {
   if (newAccessToken == null) {
     //make sure we got one when constructed
     if (_accessToken == null) {
-      throw Exception('No access token');
+      // we don't have an access token
+      // and that's okay?
+      // TODO: demystify this code
     } else {
       finalToken = _accessToken!;
     } //use the one we have
@@ -237,7 +240,6 @@ class Property {
 // ignore: camel_case_types
 class DCD_client extends ChangeNotifier {
   final authorizationEndpoint = Uri.parse('https://dwd.tudelft.nl/oauth2/auth');
-  // final token_endpoint = Uri.parse('https://dwd.tudelft.nl/oauth2/token');
   final id = 'clients:iosense';
 
   // This is a URL on your application's server. The authorization server
@@ -261,7 +263,10 @@ class DCD_client extends ChangeNotifier {
   bool authorized = false;
   String latestError = '';
   // default constructor
-  DCD_client();
+  DCD_client() {
+    //when starting up, check if we have a stored token!
+    _checkStoredToken();
+  }
 
   // app authentication object
   final FlutterAppAuth _appAuth = FlutterAppAuth();
@@ -329,32 +334,80 @@ class DCD_client extends ChangeNotifier {
     return (thing);
   }
 
-  Future<void> refresh() async {
-    try {
-      final result = await _appAuth.token(TokenRequest(
-          id, redirectUrl.toString(),
-          refreshToken: _refreshToken,
-          discoveryUrl:
-              'https://dwd.tudelft.nl/.well-known/openid-configuration',
-          scopes: _scopes));
-      _processTokenResponse(result);
-    } catch (_) {}
-  }
-
-  void _processTokenResponse(TokenResponse? result) {
-    _accessToken = result!.accessToken;
-    _refreshToken = result.refreshToken;
-  }
-
-  Future<bool> authorize() async {
+  Future<void> _getAndStoreToken() async {
     var result = await _appAuth.authorizeAndExchangeCode(
         AuthorizationTokenRequest(id, redirectUrl.toString(),
             discoveryUrl:
                 'https://dwd.tudelft.nl/.well-known/openid-configuration',
             scopes: _scopes));
     if (result != null) {
-      _processTokenResponse(result);
       authorized = true;
+      _accessToken = result.accessToken;
+      _refreshToken = result.refreshToken;
+      await _storeToken(_accessToken, _refreshToken);
+
+      // TODO simplify the flow and have a get thing check
+      await FindOrCreateThing('iosensephone');
+    }
+  }
+
+  Future<void> _storeToken(
+      [String? _accessToken, String? _refreshToken]) async {
+    /// stores the tokens in shared prefs
+    /// clears if no strings passed
+    var prefs = await SharedPreferences.getInstance();
+    await prefs.setString('accessToken', _accessToken ?? '');
+    await prefs.setString('refreshToken', _refreshToken ?? '');
+  }
+
+  Future<bool> _checkStoredToken() async {
+    /// Grabs token from SharedPreferences (if avalible)
+    /// sets authorized and access token
+    /// returns true if token is loaded
+    /// returns false if no token is stored
+    var prefs = await SharedPreferences.getInstance();
+    var storedToken = prefs.getString('accessToken');
+    if (storedToken == null || storedToken == '') {
+      // we do not have a token!
+    } else {
+      // this means we have a stored token and should set our token as that!
+      getAccessToken(storedToken);
+      authorized = true;
+
+      // TODO: simplify the flow and only find or create thing once!
+      await FindOrCreateThing('iosensephone');
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> checkAuthorized() async {
+    /// checks the current authorization of the user by pinging the server
+    /// TODO: make this function work
+    return true;
+  }
+
+  Future<bool> authorize() async {
+    /// This function authorizes the user
+    if (authorized) {
+      // we should be authorized, let's "log out"
+      authorized = false;
+      await _storeToken();
+    } else {
+      // check if we have saved a token
+      var prefs = await SharedPreferences.getInstance();
+      var storedToken = prefs.getString('accessToken');
+
+      if (storedToken == null || storedToken == '') {
+        // if the token is empty or null, get a new one
+        await _getAndStoreToken();
+        authorized = true;
+      } else {
+        // TODO: check the validity of the token
+        _accessToken = storedToken;
+        authorized = true;
+      }
     }
 
     notifyListeners();
