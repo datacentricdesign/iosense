@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sensors_plus/sensors_plus.dart'; // flutter cross-platform sensor suite
-//flutter http library
+import 'package:location/location.dart';
 import 'package:geolocator/geolocator.dart'; // package for geolocation
 import 'dcd.dart' show DCD_client; // DCD(data centric design) definitions
 
@@ -60,9 +60,11 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<double>? _userAccelerometerValues;
   List<double>? _gyroscopeValues;
-  _LocationItem? _positionItems;
   List<double>? _magnetometerValues;
-  final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
+  final Location location = Location();
+
+  LocationData? _location;
+  StreamSubscription<LocationData>? _locationSubscription;
   final List<StreamSubscription<dynamic>> _streamSubscriptions =
       <StreamSubscription<dynamic>>[];
 
@@ -86,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
         .toList();
     final magnetometer =
         _magnetometerValues?.map((double v) => v.toStringAsFixed(1)).toList();
-    final location = _positionItems.toString();
+    final location = _location.toString();
 
     return Scaffold(
       appBar: AppBar(
@@ -192,7 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     value: sendLocation,
                     onChanged: (newValue) {
                       // this should make sure the permissions are enabled/requested
-                      _handlePermission();
+                      // _handlePermission();
                       setState(() {
                         sendLocation = newValue!;
                       });
@@ -207,59 +209,20 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Future<bool> _handlePermission() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Test if location services are enabled.
-    serviceEnabled = await _geolocatorPlatform.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      // Location services are not enabled don't continue
-      // accessing the position and request users of the
-      // App to enable the location services.
-      await Geolocator.openAppSettings();
-      await Geolocator.openLocationSettings();
-      return false;
-    }
-
-    permission = await _geolocatorPlatform.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await _geolocatorPlatform.requestPermission();
-      if (permission == LocationPermission.denied) {
-        // Permissions are denied, next time you could try
-        // requesting permissions again (this is also where
-        // Android's shouldShowRequestPermissionRationale
-        // returned true. According to Android guidelines
-        // your App should show an explanatory UI now.
-
-        await Geolocator.openAppSettings();
-        await Geolocator.openLocationSettings();
-        return false;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      // Permissions are denied forever, handle appropriately.
-
-      await Geolocator.openAppSettings();
-      await Geolocator.openLocationSettings();
-      return false;
-    }
-    return true;
-  }
-
   @override
   void dispose() {
     super.dispose();
     for (var subscription in _streamSubscriptions) {
       subscription.cancel();
     }
+    _locationSubscription?.cancel();
   }
 
   @override
   void initState() {
     super.initState();
 
+    location.enableBackgroundMode(enable: true);
     _streamSubscriptions.add(gyroscopeEvents.listen((GyroscopeEvent event) {
       if (sendGyro && _sendingData) {
         Provider.of<DCD_client>(context, listen: false)
@@ -294,37 +257,24 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }));
     // Location subscription
-
-    // desired accuracy and the minimum distance change
-    // (in meters) before updates are sent to the application - 1m in our case.
-    _streamSubscriptions
-        .add(Geolocator.getPositionStream().listen((Position event) {
+    _locationSubscription =
+        location.onLocationChanged.listen((LocationData currentLocation) {
       if (sendLocation && _sendingData) {
         Provider.of<DCD_client>(context, listen: false)
             .thing
-            .updatePropertyByName(
-                'LOCATION', [event.latitude, event.longitude]);
+            .updatePropertyByName('location',
+                [currentLocation.latitude, currentLocation.longitude]);
+        Provider.of<DCD_client>(context, listen: false)
+            .thing
+            .updatePropertyByName('Altitude', [currentLocation.altitude]);
+        Provider.of<DCD_client>(context, listen: false)
+            .thing
+            .updatePropertyByName('bearing', [currentLocation.heading]);
       }
-      setState(() {
-        _positionItems = _LocationItem(
-            event.latitude, event.longitude, event.speed, event.timestamp);
-      });
-    }));
-  }
-}
 
-// taken from https://pub.dev/packages/geolocator/example
-
-class _LocationItem {
-  _LocationItem(this.lat, this.long, this.speed, this.timestamp);
-
-  final double lat;
-  final double long;
-  final double speed;
-  final DateTime? timestamp;
-
-  @override
-  String toString() {
-    return 'Latitude: $lat, Longitude: $long, Speed $speed, at $timestamp';
+      _location = currentLocation;
+    });
+    // desired accuracy and the minimum distance change
+    // (in meters) before updates are sent to the application - 1m in our case.
   }
 }
