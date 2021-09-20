@@ -144,6 +144,7 @@ class Thing extends ChangeNotifier {
     lastMessageToSend = property.to_json().toString();
     // TODO: gracefully fall back
     try {
+      // TODO: handle OSErrorr 24 too many open files
       var httpResponse = await http.put(addrUrl,
           headers: httpHeaders(accessToken),
           body: jsonEncode(property.to_json()));
