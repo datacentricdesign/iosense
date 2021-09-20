@@ -23,8 +23,7 @@ String? _refreshToken;
 
 String getAccessToken([String? newAccessToken]) {
   /// returns the access token, either the one passed or the one DCD has
-  /// checks if the token is "fresh"
-  ///
+  /// TODO: checks if the token is "fresh"
   ///
 
   var finalToken = '';

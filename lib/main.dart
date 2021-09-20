@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
           title: 'ioSense',
           debugShowCheckedModeBanner: false,
-          theme: ThemeData.dark(), // dark theme applied
+          theme: ThemeData.light(), // dark theme applied
           home: MyHomePage(),
         ));
   }
@@ -70,6 +70,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool sendGyro = false,
       sendLocation = false,
+      sendBearing = false,
+      sendAltitude = false,
       sendUserAccelerometer = false,
       sendMagnet = false;
 
@@ -88,11 +90,11 @@ class _MyHomePageState extends State<MyHomePage> {
         .toList();
     final magnetometer =
         _magnetometerValues?.map((double v) => v.toStringAsFixed(1)).toList();
-    final location = _location.toString();
+    final location = _location;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('DCD Bucket'),
+        title: const Text('ioSense'),
         actions: <Widget>[
           Padding(
               padding: EdgeInsets.only(right: 20.0),
@@ -127,10 +129,15 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('Sensor'),
-              Text('Send to Bucket'),
-            ]),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Sensor'),
+                    Text('Send to Bucket'),
+                  ]),
+            ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
@@ -188,7 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Flexible(
-                    child: Text('Location: $location'),
+                    child: Text('Location: ${location.toString()}'),
                   ),
                   Checkbox(
                     value: sendLocation,
@@ -197,6 +204,50 @@ class _MyHomePageState extends State<MyHomePage> {
                       // _handlePermission();
                       setState(() {
                         sendLocation = newValue!;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Flexible(
+                      child: Text(location != null
+                          ? 'Altitude: ${location.altitude.toString()}'
+                          : 'Altitude: ')),
+                  Checkbox(
+                    value: sendAltitude,
+                    onChanged: (newValue) {
+                      // this should make sure the permissions are enabled/requested
+                      // _handlePermission();
+                      setState(() {
+                        sendAltitude = newValue!;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Flexible(
+                      child: Text(location != null
+                          ? 'Bearing: ${location.heading.toString()}'
+                          : 'Bearing: ')),
+                  Checkbox(
+                    value: sendBearing,
+                    onChanged: (newValue) {
+                      // this should make sure the permissions are enabled/requested
+                      // _handlePermission();
+                      setState(() {
+                        sendBearing = newValue!;
                       });
                     },
                   ),
@@ -259,17 +310,23 @@ class _MyHomePageState extends State<MyHomePage> {
     // Location subscription
     _locationSubscription =
         location.onLocationChanged.listen((LocationData currentLocation) {
-      if (sendLocation && _sendingData) {
-        Provider.of<DCD_client>(context, listen: false)
-            .thing
-            .updatePropertyByName('location',
-                [currentLocation.latitude, currentLocation.longitude]);
-        Provider.of<DCD_client>(context, listen: false)
-            .thing
-            .updatePropertyByName('Altitude', [currentLocation.altitude]);
-        Provider.of<DCD_client>(context, listen: false)
-            .thing
-            .updatePropertyByName('bearing', [currentLocation.heading]);
+      if (_sendingData) {
+        if (sendLocation) {
+          Provider.of<DCD_client>(context, listen: false)
+              .thing
+              .updatePropertyByName('location',
+                  [currentLocation.latitude, currentLocation.longitude]);
+        }
+        if (sendAltitude) {
+          Provider.of<DCD_client>(context, listen: false)
+              .thing
+              .updatePropertyByName('Altitude', [currentLocation.altitude]);
+        }
+        if (sendBearing) {
+          Provider.of<DCD_client>(context, listen: false)
+              .thing
+              .updatePropertyByName('bearing', [currentLocation.heading]);
+        }
       }
 
       _location = currentLocation;
