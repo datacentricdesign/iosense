@@ -61,11 +61,15 @@ class _MyHomePageState extends State<MyHomePage> {
   List<double>? _userAccelerometerValues;
   List<double>? _gyroscopeValues;
   _LocationItem? _positionItems;
+  List<double>? _magnetometerValues;
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   final List<StreamSubscription<dynamic>> _streamSubscriptions =
       <StreamSubscription<dynamic>>[];
 
-  bool sendGyro = false, sendLocation = false, sendUserAccelerometer = false;
+  bool sendGyro = false,
+      sendLocation = false,
+      sendUserAccelerometer = false,
+      sendMagnet = false;
 
   bool _sendingData = false;
 
@@ -80,6 +84,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final userAccelerometer = _userAccelerometerValues
         ?.map((double v) => v.toStringAsFixed(1))
         .toList();
+    final magnetometer =
+        _magnetometerValues?.map((double v) => v.toStringAsFixed(1)).toList();
     final location = _positionItems.toString();
 
     return Scaffold(
@@ -105,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         .name ==
                     '') {
                   await Provider.of<DCD_client>(context, listen: false)
-                      .FindOrCreateThing('ioSense phone');
+                      .FindOrCreateThing('ioSense phone2');
                 }
               },
               child: Icon(Provider.of<DCD_client>(context).authorized
@@ -151,6 +157,23 @@ class _MyHomePageState extends State<MyHomePage> {
                     onChanged: (newValue) {
                       setState(() {
                         sendGyro = newValue!;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text('Magnetometer: $magnetometer'),
+                  Checkbox(
+                    value: sendMagnet,
+                    onChanged: (newValue) {
+                      setState(() {
+                        sendMagnet = newValue!;
                       });
                     },
                   ),
@@ -245,6 +268,18 @@ class _MyHomePageState extends State<MyHomePage> {
       }
       setState(() {
         _gyroscopeValues = <double>[event.x, event.y, event.z];
+      });
+    }));
+    _streamSubscriptions
+        .add(magnetometerEvents.listen((MagnetometerEvent event) {
+      if (sendMagnet && _sendingData) {
+        Provider.of<DCD_client>(context, listen: false)
+            .thing
+            .updatePropertyByName(
+                'Magnetic Field', [event.x, event.y, event.z]);
+      }
+      setState(() {
+        _magnetometerValues = <double>[event.x, event.y, event.z];
       });
     }));
     _streamSubscriptions

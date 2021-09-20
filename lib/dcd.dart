@@ -178,7 +178,7 @@ class Thing extends ChangeNotifier {
     await createProperty('GYROSCOPE', accessToken);
     await createProperty('ACCELEROMETER', accessToken);
     await createProperty('LOCATION', accessToken);
-    await createProperty('ALTITUDE', accessToken);
+    await createProperty('MagneticField', accessToken);
   }
 
   bool updatePropertyByName(String name, List<dynamic> values) {
@@ -193,7 +193,7 @@ class Thing extends ChangeNotifier {
     name = name.toLowerCase();
 
     for (var property in properties!) {
-      if (property.name == name) {
+      if (property.name!.toLowerCase() == name) {
         update_property_http(property, values);
         updated = true;
       }
