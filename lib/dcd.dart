@@ -142,15 +142,19 @@ class Thing extends ChangeNotifier {
       property.values!.add(element);
     }
     lastMessageToSend = property.to_json().toString();
+    // TODO: gracefully fall back
+    try {
+      var httpResponse = await http.put(addrUrl,
+          headers: httpHeaders(accessToken),
+          body: jsonEncode(property.to_json()));
 
-    var httpResponse = await http.put(addrUrl,
-        headers: httpHeaders(accessToken),
-        body: jsonEncode(property.to_json()));
-
-    if (httpResponse.statusCode != 200 && httpResponse.statusCode != 204) {
-      latestError =
-          'Failed to post property values ${property.values} to property with id ${property.id}, from thing with id: $id to the following response: ${httpResponse.statusCode}';
-      notifyListeners();
+      if (httpResponse.statusCode != 200 && httpResponse.statusCode != 204) {
+        latestError =
+            'Failed to post property values ${property.values} to property with id ${property.id}, from thing with id: $id to the following response: ${httpResponse.statusCode}';
+        notifyListeners();
+      }
+    } catch (all) {
+      return (null);
     }
     return (null);
   }
