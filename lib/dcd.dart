@@ -179,8 +179,7 @@ class Thing extends ChangeNotifier {
     await createProperty('LOCATION', accessToken);
     await createProperty('ALTITUDE', accessToken);
     await createProperty('BEARING', accessToken);
-    //TODO: unable to create magnetic field property?
-    await createProperty('MAGNETIC FIELD', accessToken);
+    await createProperty('MAGNETIC_FIELD', accessToken);
   }
 
   bool updatePropertyByName(String name, List<dynamic> values) {
