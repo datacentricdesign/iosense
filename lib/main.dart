@@ -62,6 +62,8 @@ class _MyHomePageState extends State<MyHomePage> {
   List<double>? _gyroscopeValues;
   List<double>? _magnetometerValues;
   final Location location = Location();
+  late PermissionStatus _permissionGranted;
+  late bool _serviceEnabled;
 
   LocationData? _location;
   StreamSubscription<LocationData>? _locationSubscription;
@@ -270,11 +272,30 @@ class _MyHomePageState extends State<MyHomePage> {
     _locationSubscription?.cancel();
   }
 
+  Future<void> checkLocationPermissions() async {
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
 
     location.enableBackgroundMode(enable: true);
+    checkLocationPermissions();
     _streamSubscriptions.add(gyroscopeEvents.listen((GyroscopeEvent event) {
       if (sendGyro && _sendingData) {
         Provider.of<DCD_client>(context, listen: false)
