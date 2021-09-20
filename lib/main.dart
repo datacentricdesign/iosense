@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sensors_plus/sensors_plus.dart'; // flutter cross-platform sensor suite
 import 'package:location/location.dart';
-import 'package:geolocator/geolocator.dart'; // package for geolocation
 import 'dcd.dart' show DCD_client; // DCD(data centric design) definitions
 
 // async main to call our main app state, after retrieving camera
