@@ -195,8 +195,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Flexible(
-                    child: Text('Location: ${location.toString()}'),
-                  ),
+                      child: Text(location != null
+                          ? 'Location: ${location.latitude.toString()}, ${location.longitude.toString()}'
+                          : 'Location: ')),
                   Checkbox(
                     value: sendLocation,
                     onChanged: (newValue) {
