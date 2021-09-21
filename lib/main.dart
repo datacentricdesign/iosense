@@ -127,21 +127,42 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: Container(
-        child: Column(
-          // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Sensor'),
-                    Text('Send to Bucket'),
-                  ]),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    '${Provider.of<DCD_client>(context).thing.id}',
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  )
+                ],
+              ),
+              const Divider(),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                const Text(
+                  'Sensor:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const Text(
+                  'Send to Bucket',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ]),
+              const Divider(),
+              Row(
+                children: [
+                  Text(
+                    'IMU',
+                    style: Theme.of(context).textTheme.caption,
+                  )
+                ],
+              ),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Text('UserAccelerometer: $userAccelerometer'),
@@ -155,10 +176,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Text('Gyroscope: $gyroscope'),
@@ -172,10 +190,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
+              /////// this removes missbehaving magnetometer from UI
+              ///TODO: figure out if the sample rate can be changed
+              ///TODO:
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Text('Magnetometer: $magnetometer'),
@@ -189,10 +207,16 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
+              const Divider(),
+              Row(
+                children: [
+                  Text(
+                    'GPS',
+                    style: Theme.of(context).textTheme.caption,
+                  )
+                ],
+              ),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Flexible(
@@ -211,10 +235,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Flexible(
@@ -233,10 +254,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Flexible(
@@ -255,8 +273,33 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ],
               ),
-            ),
-          ],
+              const Divider(),
+              Row(
+                children: [
+                  Text(
+                    '1. press the ! on the top right to log in',
+                    style: Theme.of(context).textTheme.caption,
+                  )
+                ],
+              ),
+              Row(
+                children: [
+                  Text(
+                    '2. select the sensors to stream',
+                    style: Theme.of(context).textTheme.caption,
+                  )
+                ],
+              ),
+              Row(
+                children: [
+                  Text(
+                    '3. press the play to start streaming',
+                    style: Theme.of(context).textTheme.caption,
+                  )
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
