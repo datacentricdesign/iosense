@@ -193,20 +193,20 @@ class _MyHomePageState extends State<MyHomePage> {
               /////// this removes missbehaving magnetometer from UI
               ///TODO: figure out if the sample rate can be changed
               ///TODO:
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text('Magnetometer: $magnetometer'),
-                  Checkbox(
-                    value: sendMagnet,
-                    onChanged: (newValue) {
-                      setState(() {
-                        sendMagnet = newValue!;
-                      });
-                    },
-                  ),
-                ],
-              ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //   children: <Widget>[
+              //     Text('Magnetometer: $magnetometer'),
+              //     Checkbox(
+              //       value: sendMagnet,
+              //       onChanged: (newValue) {
+              //         setState(() {
+              //           sendMagnet = newValue!;
+              //         });
+              //       },
+              //     ),
+              //   ],
+              // ),
               const Divider(),
               Row(
                 children: [
