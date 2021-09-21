@@ -115,8 +115,7 @@ class Thing extends ChangeNotifier {
 
     // 'post' the blank property to the server
     var httpResponse = await http.post(addrUrl,
-        headers: httpHeaders(newAccessToken),
-        body: jsonEncode(blank.to_json()));
+        headers: httpHeaders(newAccessToken), body: jsonEncode(blank.toJson()));
 
     if (httpResponse.statusCode != 201) {
       // If that response was not OK, throw an error.
@@ -141,13 +140,13 @@ class Thing extends ChangeNotifier {
     for (var element in values) {
       property.values!.add(element);
     }
-    lastMessageToSend = property.to_json().toString();
+    lastMessageToSend = property.toJson().toString();
     // TODO: gracefully fall back
     try {
       // TODO: handle OSErrorr 24 too many open files
       var httpResponse = await http.put(addrUrl,
           headers: httpHeaders(accessToken),
-          body: jsonEncode(property.to_json()));
+          body: jsonEncode(property.toJson()));
 
       if (httpResponse.statusCode != 200 && httpResponse.statusCode != 204) {
         latestError =
@@ -208,7 +207,6 @@ class Thing extends ChangeNotifier {
   }
 }
 
-// supported types so far : ACCELEROMETER, GYROSCOPE, 5_DIMENSIONS, IMAGE
 class Property {
   String? id;
   String? name;
@@ -227,11 +225,8 @@ class Property {
         type = json['typeId'],
         values = json['values'];
 
-  // overriding function for jsonEncode Call
-  Map<String, dynamic> toJson() => to_json();
-
   // arrow notation (replaces {return x;}
-  Map<String, dynamic> to_json() => {
+  Map<String, dynamic> toJson() => {
         // only create fields of json is value is not null
         'id': id ?? '',
         'name': name ?? '',
