@@ -8,6 +8,8 @@ import '../dcd.dart' show DCD_client; // DCD(data centric design) definitions
 // TODO: switch cameras
 // TODO: simplify code
 // TODO: reduce random functions
+// TODO: make it clear when the video is going to be recorded
+// TODO: make it clear where video is saved
 List<CameraDescription>? cameras;
 
 class CameraApp extends StatefulWidget {
