@@ -78,6 +78,12 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Scaffold(
             appBar: AppBar(
               title: const Text('ioSense'),
+              bottom: TabBar(
+                tabs: [
+                  Tab(icon: Icon(Icons.auto_graph_outlined)),
+                  Tab(icon: Icon(Icons.camera_alt_outlined)),
+                ],
+              ),
               actions: <Widget>[
                 Padding(
                     padding: EdgeInsets.only(right: 20.0),
