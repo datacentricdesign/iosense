@@ -3,11 +3,22 @@
 <plist version="1.0">
 <dict>
  <!-- things I have added -->
+ <!-- location permissions -->
+<key>NSLocationWhenInUseUsageDescription</key>
+<true />
+<key>NSLocationAlwaysUsageDescription</key>
+<true />
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<true />
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string> location</string>
+
+<!-- camera permissions -->
  <key>NSCameraUsageDescription</key>
 <string>Can I use the camera please?</string>
 <key>NSMicrophoneUsageDescription</key>
 <string>Can I use the mic please?</string>
-<!-- generated plist items -->
+<!-- auto generated keys -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
