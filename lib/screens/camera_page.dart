@@ -114,6 +114,7 @@ class _CameraAppState extends State<CameraApp>
                 },
               ),
               FloatingActionButton(
+                backgroundColor: _sendingVideo ? Colors.red : Colors.blue,
                 child: _sendingVideo
                     ? const Icon(Icons.videocam)
                     : const Icon(Icons.videocam_off),
