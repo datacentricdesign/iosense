@@ -5,17 +5,13 @@ import 'package:gallery_saver/gallery_saver.dart';
 import 'package:provider/provider.dart';
 import '../dcd.dart' show DCD_client; // DCD(data centric design) definitions
 
+// TODO: switch cameras
+// TODO: simplify code
+// TODO: reduce random functions
 List<CameraDescription>? cameras;
 
 class CameraApp extends StatefulWidget {
   final _CameraAppState cameraPage = _CameraAppState();
-  void start() {
-    cameraPage.onVideoRecordButtonPressed();
-  }
-
-  void stop() {
-    cameraPage.onStopButtonPressed();
-  }
 
   @override
   State<StatefulWidget> createState() => cameraPage;
