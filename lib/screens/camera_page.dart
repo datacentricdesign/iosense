@@ -122,10 +122,11 @@ class _CameraAppState extends State<CameraApp>
                   toggleSendVideo();
                 },
               ),
-              FloatingActionButton(
-                child: const Icon(Icons.mic_off),
-                onPressed: () {},
-              )
+              //TODO: add mute functionality
+              // FloatingActionButton(
+              //   child: const Icon(Icons.mic_off),
+              //   onPressed: () {},
+              // )
             ]),
       ),
     );
