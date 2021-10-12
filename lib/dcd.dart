@@ -242,7 +242,7 @@ class Property {
 class DCD_client extends ChangeNotifier {
   final authorizationEndpoint = Uri.parse('https://dwd.tudelft.nl/oauth2/auth');
   final id = 'clients:iosense';
-
+  bool sendingData = false;
   // This is a URL on your application's server. The authorization server
   // will redirect the resource owner here once they've authorized the
   // client. The redirection will include the authorization code in the
@@ -267,6 +267,12 @@ class DCD_client extends ChangeNotifier {
   DCD_client() {
     //when starting up, check if we have a stored token!
     _checkStoredToken();
+  }
+
+  bool toggleSendingData() {
+    sendingData = !sendingData;
+    notifyListeners();
+    return sendingData;
   }
 
   // app authentication object
