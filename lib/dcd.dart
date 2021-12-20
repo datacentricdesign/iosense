@@ -1,201 +1,220 @@
 // Flutter side of Hub structures
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:http/http.dart' as http;
-import 'package:mqtt_client/mqtt_client.dart'; // package for MQTT connection
+import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:provider/provider.dart';
 
-class Thing
-{
-  String id;
-  String name;
-  String description;
-  String type;
-  List<Object> properties;
-  int readAt;
-  String token;
+////// this DCD file needs extensive reworking
+///TODO:
+/// - add mqtt client
+/// - fix null checking
+/// - add error handling
+/// - add logging
+/// - improve documentation
+///
+
+// this URL should point to the bucket API!
+const basicURL = 'https://dwd.tudelft.nl:443/bucket/api';
+
+String? _accessToken;
+String? _refreshToken;
+
+String getAccessToken([String? newAccessToken]) {
+  /// returns the access token, either the one passed or the one DCD has
+  /// TODO: checks if the token is "fresh"
+  ///
+
+  var finalToken = '';
+  // if we're not passed a new access token,
+  if (newAccessToken == null) {
+    //make sure we got one when constructed
+    if (_accessToken == null) {
+      // we don't have an access token
+      // and that's okay?
+      // TODO: demystify this code
+    } else {
+      finalToken = _accessToken!;
+    } //use the one we have
+  } else {
+    //we've received a new access token, update the global one
+    _accessToken = newAccessToken;
+  }
+
+  return finalToken;
+}
+
+Map<String, String> httpHeaders([String? newAccessToken]) {
+  /// returns the headers for the http request, checking the access token first
+
+  var token = getAccessToken(newAccessToken);
+  return ({
+    'Authorization': 'bearer $token',
+    'Content-Type': 'application/json',
+    'Response-Type': 'application/json'
+  });
+}
+
+class Thing extends ChangeNotifier {
+  String id = '';
+  String name = '';
+  String description = '';
+  String type = '';
+  List<Property>? properties;
+  int? readAt;
   //Map<String, dynamic> keys;
 
-  Thing(this.id,
-        this.name,
-        this.description,
-        this.type,
-        this.properties,
-        this.readAt,
-        /*this.keys*/);
+  String latestError = '';
+  String lastMessageToSend = '';
+
+  Thing(this.id, this.name, this.description, this.type, this.properties,
+      this.readAt);
 
   // named constructor from json object
   // also using an initializer list
-  Thing.from_json(Map<String, dynamic> json)
-      : id = json['id'],
-        name = json['name'],
-        description = json['description'],
-        type = json['type'],
-        // taking a json input, for each object in properties
-        // will place a Property into the list,  created with said object
-        properties = [ for (var property_json in json['properties']) Property.from_json(property_json)],
-        readAt = json['readAt'],
-        token =  json['token'] ?? json['keys']['jwt'] ;
 
-
-
-
+  Thing.from_json(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    description = json['description'];
+    type = json['type'];
+    properties = [];
+    if (json['properties'] != null) {
+      for (var propertyJson in json['properties']) {
+        properties!.add(Property.from_json(propertyJson));
+      }
+    }
+    readAt = json['readAt'];
+  }
 
   // arrow notation =>x (replaces  with {return x}
-  Map<String, dynamic> to_json([bool hide_token = false]) =>
-      {
-
-          if(id!= null) 'id':id,
-          if(name!=null)'name': name,
-          if(description!=null)'description': description,
-          if(type!=null)'type': type,
-          if(properties!=null)'properties': properties,
-          if(readAt!=null)'readAt': readAt,
-          if(token!=null && !hide_token)'token': token,
+  Map<String, dynamic> to_json() => {
+        'id': id,
+        'name': name,
+        'description': description,
+        'type': type,
+        'properties': properties,
+        'readAt': readAt ?? 0,
       };
 
+  Future<Property> createProperty(String propType,
+      [String? newAccessToken]) async {
+    /// Given an EXISTING thing,
+    /// creates a property in it of type prop_type,
+    /// and returns created property
+    ///
+    if (id == '') throw Exception('Invalid thing id');
 
-  // Given an EXISTING thing, and an access token,
-  // creates a property in it of type prop_type,
-  // and returns created property
-  Future<Property> create_property(String prop_type, String access_token) async
-  {
-    if( this.id == null) throw Exception("Invalid thing id");
     // basic address
-    var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties';
+    var addrUrl = Uri.parse('$basicURL/things/$id/properties');
 
-    Property blank = Property(null, prop_type.toLowerCase(), null, prop_type);
-    //blank property,except type and name
-    // if it is location data
-    if(prop_type == "FOUR_DIMENSIONS")
-    {
-          blank.name = "4D location";
-          blank.description =
-                                 """saves 4D location data:
-                                 latitude in degrees normalized to the interval [-90.0,+90.0]
-                                 longitude in degrees normalized to the interval [-90.0,+90.0]
-                                 altitude in meters
-                                 speed at which the device is traveling in m/s over ground
-                                 """;
-    }
+    // create a blank property
+    var blank =
+        Property(null, propType.toLowerCase(), 'A simple $propType', propType);
 
+    // 'post' the blank property to the server
+    var httpResponse = await http.post(addrUrl,
+        headers: httpHeaders(newAccessToken), body: jsonEncode(blank.toJson()));
 
-    var http_response = await http.post(addr_url,
-                                        headers: {'Authorization':
-                                                  'Bearer ${access_token}',
-                                                  'Content-Type' :
-                                                  'application/json',
-                                                  'Response-Type':
-                                                  'application/json'},
-                                        body: jsonEncode( blank.to_json()));
-
-    if (http_response.statusCode != 201)
-    {
+    if (httpResponse.statusCode != 201) {
       // If that response was not OK, throw an error.
       throw Exception('Failed to post property to thing');
     }
 
-    var json = jsonDecode(http_response.body);
-    // adding a new property to our thing
-    this.properties.add(Property.from_json(json['property'])
-    );
+    // create the new property from the server response
+    var newProperty = Property.from_json(jsonDecode(httpResponse.body));
 
-    return(Property.from_json(json));
+    // adding a new property to our thing
+    properties!.add(newProperty);
+
+    return (newProperty);
   }
 
   // updates property values given property, values and access token
-  Future<void>update_property_http(Property property , List<dynamic> values, String access_token) async
-  {
-    var addr_url = 'https://dwd.tudelft.nl/api/things/${this.id}/properties/${property.id}';
+  Future<void> update_property_http(Property property, List<dynamic> values,
+      [String? accessToken]) async {
+    var addrUrl = Uri.parse('$basicURL/things/$id/properties/${property.id}');
 
-
-    // struct of data to send to server value :[[ tmstamp, ... ]]
-    var temp = <Object>[];
-    // if four dimensions, timestamp is given by last value
-    temp.add((property.type == "FOUR_DIMENSIONS") ? (values[4].millisecondsSinceEpoch) : DateTime.now().millisecondsSinceEpoch);
-    temp += (property.type != "FOUR_DIMENSIONS")? values : values.sublist(0, 4);
-    property.values =  temp; // setting the values of the property that's replaced
-
-
-    if (property.type == "PICTURE"){
-      // we must redefine
-      property.values = [];
-
-
+    property.values = [DateTime.now().millisecondsSinceEpoch];
+    for (var element in values) {
+      property.values!.add(element);
     }
+    lastMessageToSend = property.toJson().toString();
+    // TODO: gracefully fall back
+    try {
+      // TODO: handle OSErrorr 24 too many open files
+      var httpResponse = await http.put(addrUrl,
+          headers: httpHeaders(accessToken),
+          body: jsonEncode(property.toJson()));
 
-    //var lala = (jsonEncode(property.to_json()));
-    // printing post message
-    //debugPrint(jsonEncode(property.to_json());
-    if( property.type != "PICTURE")
-    {
-        var http_response = await http.put(addr_url,
-                                           headers: {'Authorization':
-                                                     'Bearer ${access_token}',
-                                                     'Content-Type':
-                                                     'application/json',
-                                                     'Response-Type':
-                                                     'application/json'},
-                                           body: jsonEncode(property.to_json()),
-        );
-
-        if (http_response.statusCode != 200) {
-          // If that response was not OK, throw an error.
-            throw Exception('''Failed to post property values 
-                            ${property.values} 
-                            to property with id ${property.id}, 
-                            from thing with id: ${this.id} 
-                            to the following link:
-                            ${addr_url}''');
-        }
-    } else {
-      // here we handle the specific media content ( picture/video )
-      // wait until http is redefined
-    }
-
-    //var json =  await jsonDecode(http_response.body);
-    //return(Property.from_json(json));
-  }
-
-  void update_property_mqtt(Property property , List<dynamic> values, String thing_token, MqttClient mqtt_client)
-  {
-      var topic_url = '/things/${this.id}/properties/${property.id}';
-
-
-      // struct of data to send to server value :[[ tmstamp, ... ]]
-      var temp = <Object>[];
-      // if four dimensions, timestamp is given by last value
-      temp.add((property.type == "FOUR_DIMENSIONS") ? (values[4].millisecondsSinceEpoch) : DateTime.now().millisecondsSinceEpoch);
-      temp += (property.type != "FOUR_DIMENSIONS")? values : values.sublist(0, 4);
-      property.values =  temp; // setting the values of the property that's replaced
-
-      final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
-      builder.addString(jsonEncode(property.to_json()));
-
-
-      if(mqtt_client.connectionStatus.state == MqttConnectionState.connected){
-
-        mqtt_client.publishMessage(topic_url, MqttQos.exactlyOnce, builder.payload);
+      if (httpResponse.statusCode != 200 && httpResponse.statusCode != 204) {
+        latestError =
+            'Failed to post property values ${property.values} to property with id ${property.id}, from thing with id: $id to the following response: ${httpResponse.statusCode}';
+        notifyListeners();
       }
-
+    } catch (all) {
+      return (null);
+    }
+    return (null);
   }
 
+  Future<List<Property>?> getProperties() async {
+    properties = [];
+    var addrUrl = Uri.parse(basicURL + '/things/' + id + '/properties');
+    // creating empty thing
+    var httpResponse = await http.get(addrUrl, headers: httpHeaders());
+    if (httpResponse.statusCode != 200 && httpResponse.statusCode != 204) {
+      latestError =
+          'Failed to gather properties from thing with id: $id to the following response: ${httpResponse.statusCode}';
+    } else {
+      var json = jsonDecode(httpResponse.body);
+      for (var propertyJson in json['jsonProperty']) {
+        properties!.add(Property.from_json(propertyJson));
+      }
+    }
+    return properties;
+  }
+
+  void createPropertiesHub([String? accessToken]) async {
+    /// creates the properties that is expected of a phone
+    await createProperty('GYROSCOPE', accessToken);
+    await createProperty('ACCELEROMETER', accessToken);
+    await createProperty('LOCATION', accessToken);
+    await createProperty('ALTITUDE', accessToken);
+    await createProperty('BEARING', accessToken);
+    await createProperty('MAGNETIC_FIELD', accessToken);
+  }
+
+  bool updatePropertyByName(String name, List<dynamic> values) {
+    /// updates property values given the property's name and new values values
+    /// returns true if successful (item found)
+    /// returns false if unsuccessful (item not found)
+    ///
+    /// TODO: verify the proerty was updated
+    ///
+
+    var updated = false;
+    name = name.toLowerCase();
+
+    for (var property in properties!) {
+      if (property.name!.toLowerCase() == name) {
+        update_property_http(property, values);
+        updated = true;
+      }
+    }
+    return updated;
+  }
 }
 
+class Property {
+  String? id;
+  String? name;
+  String? description;
+  String? type;
+  List<dynamic>? values; //list of values
 
-// supported types so far : ACCELEROMETER, GYROSCOPE, 5_DIMENSIONS, IMAGE
-class Property
-{
-  String id;
-  String name;
-  String description;
-  String type;
-  List<dynamic> values; //list of values
-
-  Property(this.id,
-
-
-           this.name,
-           this.description,
-           this.type);
+  Property(this.id, this.name, this.description, this.type);
 
   // named constructor from json object
   // also using an initializer list
@@ -203,87 +222,203 @@ class Property
       : id = json['id'],
         name = json['name'],
         description = json['description'],
-        type = json['type'],
-        values= json['values'];
-
-  // overriding function for jsonEncode Call
-  Map<String, dynamic> toJson() => to_json();
+        type = json['typeId'],
+        values = json['values'];
 
   // arrow notation (replaces {return x;}
-  Map<String, dynamic> to_json() =>
-      {
+  Map<String, dynamic> toJson() => {
         // only create fields of json is value is not null
-        if(id!= null) 'id':id,
-        if(name!=null)'name': name,
-        if(description!=null)'description': description,
-        if(type!=null)'type': type,
-        if(values!=null)'values': [values],
+        'id': id ?? '',
+        'name': name ?? '',
+        'description': description ?? '',
+        'typeId': type ?? '',
+        'values': [values],
       };
-
 }
 
 // client of DCD,
 // used to receive token, connect and interact with the hub.
-class DCD_client {
-  final authorization_endpoint =
-  Uri.parse('https://dwd.tudelft.nl/oauth2/auth');
-  final token_endpoint =
-  Uri.parse('https://dwd.tudelft.nl/oauth2/token');
-  final id = 'clients:dcd-app-mobile';
-
+// ignore: camel_case_types
+class DCD_client extends ChangeNotifier {
+  final authorizationEndpoint = Uri.parse('https://dwd.tudelft.nl/oauth2/auth');
+  final id = 'clients:iosense';
+  bool sendingData = false;
   // This is a URL on your application's server. The authorization server
   // will redirect the resource owner here once they've authorized the
   // client. The redirection will include the authorization code in the
   // query parameters.
-  final redirect_url = Uri.parse(
-      'nl.tudelft.ide.dcd-app-mobile:/oauth2redirect');
-  final basic_url = 'https://dwd.tudelft.nl/api';
+  final redirectUrl = Uri.parse('nl.tudelft.ide.iosense:/oauth2redirect');
 
-  String access_token; // holds access token for our hub connection
-  Thing thing ; // holds thing for our client to update
+  final List<String> _scopes = [
+    'openid',
+    'offline',
+    'email',
+    'profile',
+    'dcd:public',
+    'dcd:things',
+    'dcd:properties'
+  ];
 
+  Thing thing = Thing('', '', '', '', [], 0); // holds a blank thing
+  late List<Thing> allThings; // holds a list of things
+  bool authorized = false;
+  String latestError = '';
   // default constructor
-  DCD_client();
+  DCD_client() {
+    //when starting up, check if we have a stored token!
+    _checkStoredToken();
+  }
+
+  bool toggleSendingData() {
+    sendingData = !sendingData;
+    notifyListeners();
+    return sendingData;
+  }
+
+  // app authentication object
+  final FlutterAppAuth _appAuth = FlutterAppAuth();
+
+  Future<Thing?> FindOrCreateThing(String thingName) async {
+    /// checks the "things" associated with the user
+    /// returns the first "thing" with a matching name
+    /// or creates that thing
+
+    //make sure we got one when constructed
+    getAccessToken();
+    //use the one we have
+
+    var addrUrl = Uri.parse(basicURL + '/things');
+
+    var httpResponse = await http.get(addrUrl, headers: httpHeaders());
+
+    Iterable l = json.decode(httpResponse.body);
+    allThings = List<Thing>.from(l.map((model) => Thing.from_json(model)));
+    //check the JSON file for a thing with the same name
+    var targetThing = Thing('', '', '', '', null, null);
+    for (var thingElement in allThings) {
+      if (thingElement.name == thingName) {
+        targetThing = thingElement;
+      }
+    }
+
+    if (targetThing.name == '') {
+      // if we don't find the thing, create it
+      targetThing = (await createThing(thingName))!;
+    }
+    thing = targetThing;
+    notifyListeners();
+    return (targetThing);
+  }
 
   // creates thing in hub and puts it into client thing member
-  Future<Thing> create_thing(String thing_name, String access_token) async
-  {
-    var addr_url = basic_url + '/things?jwt=true';
+  Future<Thing?> createThing(String thingName, [String? accessToken]) async {
+    // check to make sure we have the access token
+
+    var uri = Uri.parse(basicURL + '/things');
     // creating empty thing
-    Thing blank = Thing(null,thing_name,null, "test", null, null );
-    var http_response = await http.post(addr_url,
-                                        headers: {'Authorization':
-                                                  'Bearer ${access_token}',
-                                                  'Content-Type' :
-                                                  'application/json',
-                                                  'Response-Type':
-                                                  'application/json'},
-                                        body: jsonEncode(blank.to_json()),
+    var blank = Thing('', thingName, '', 'test', null, null);
 
-                                        );
+    // post it to the server
+    var httpResponse = await http.post(
+      uri,
+      headers: httpHeaders(accessToken),
+      body: jsonEncode(blank.to_json()),
+    );
 
-
-
-    if (http_response.statusCode != 201) {
+    if (httpResponse.statusCode != 201) {
       // If that response was not OK, throw an error.
+      latestError = 'Failed to post thing';
       throw Exception('Failed to post to thing');
     }
 
-    var json = jsonDecode(http_response.body);
-    this.thing = Thing.from_json(json['thing']);
-    return (this.thing);
+    thing = Thing.from_json(jsonDecode(httpResponse.body));
+
+    // since we always created the same properties on the thing (at least....)
+    // we can just create the general properties from the thing
+    // thing.createPropertiesHub(accessToken!);
+    thing.createPropertiesHub();
+    notifyListeners();
+    return (thing);
   }
 
-  // structure for  deleting all things in hub
-  void delete_things_hub( List<String> ids_to_delete)
-  {
+  Future<void> _getAndStoreToken() async {
+    var result = await _appAuth.authorizeAndExchangeCode(
+        AuthorizationTokenRequest(id, redirectUrl.toString(),
+            discoveryUrl:
+                'https://dwd.tudelft.nl/.well-known/openid-configuration',
+            scopes: _scopes));
+    if (result != null) {
+      authorized = true;
+      _accessToken = result.accessToken;
+      _refreshToken = result.refreshToken;
+      await _storeToken(_accessToken, _refreshToken);
 
-    ids_to_delete.forEach((prop_id_to_delete) async{
-      var http_response = await http.delete('https://dwd.tudelft.nl/api/things/${prop_id_to_delete}',
-          headers: {'Authorization': 'Bearer ${this.access_token}'});
-
-    });
-
+      // TODO simplify the flow and have a get thing check
+      await FindOrCreateThing('iosensephone');
+    }
   }
 
+  Future<void> _storeToken(
+      [String? _accessToken, String? _refreshToken]) async {
+    /// stores the tokens in shared prefs
+    /// clears if no strings passed
+    var prefs = await SharedPreferences.getInstance();
+    await prefs.setString('accessToken', _accessToken ?? '');
+    await prefs.setString('refreshToken', _refreshToken ?? '');
+  }
+
+  Future<bool> _checkStoredToken() async {
+    /// Grabs token from SharedPreferences (if avalible)
+    /// sets authorized and access token
+    /// returns true if token is loaded
+    /// returns false if no token is stored
+    var prefs = await SharedPreferences.getInstance();
+    var storedToken = prefs.getString('accessToken');
+    if (storedToken == null || storedToken == '') {
+      // we do not have a token!
+    } else {
+      // this means we have a stored token and should set our token as that!
+      getAccessToken(storedToken);
+      authorized = true;
+
+      // TODO: simplify the flow and only find or create thing once!
+      await FindOrCreateThing('iosensephone');
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> checkAuthorized() async {
+    /// checks the current authorization of the user by pinging the server
+    /// TODO: make this function work
+    return true;
+  }
+
+  Future<bool> authorize() async {
+    /// This function authorizes the user
+    if (authorized) {
+      // we should be authorized, let's "log out"
+      authorized = false;
+      await _storeToken();
+    } else {
+      // check if we have saved a token
+      var prefs = await SharedPreferences.getInstance();
+      var storedToken = prefs.getString('accessToken');
+
+      if (storedToken == null || storedToken == '') {
+        // if the token is empty or null, get a new one
+        await _getAndStoreToken();
+        authorized = true;
+      } else {
+        // TODO: check the validity of the token
+        _accessToken = storedToken;
+        authorized = true;
+      }
+    }
+
+    notifyListeners();
+    // result is null, so something when wrong
+    return false;
+  }
 }
